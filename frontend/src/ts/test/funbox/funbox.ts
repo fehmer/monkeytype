@@ -737,4 +737,11 @@ FunboxList.setFunboxFunctions("crt", {
     }
     $("body").addClass("crtmode");
   },
+  applyCSS(): void {
+    $("#funBoxTheme").attr("href", `funbox/crt.css`);
+  },
+  applyGlobalCSS(): void {
+    this.applyConfig?.();
+    this.applyCSS?.();
+  },
 });

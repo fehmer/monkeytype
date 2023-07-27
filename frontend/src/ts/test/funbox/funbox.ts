@@ -583,7 +583,11 @@ export function toggleFunbox(funbox: string): boolean {
 }
 
 export async function clear(): Promise<boolean> {
-  $("#funBoxTheme").attr("href", ``);
+  if (
+    !FunboxList.get(Config.funbox).some((it) => it.functions?.applyGlobalCSS)
+  ) {
+    $("#funBoxTheme").attr("href", ``);
+  }
   $("#words").removeClass("nospace");
   $("#words").removeClass("arrows");
   $("#wordsWrapper").removeClass("hidden");
@@ -619,7 +623,11 @@ export async function activate(funbox?: string): Promise<boolean | undefined> {
 
   MemoryTimer.reset();
   $("#wordsWrapper").removeClass("hidden");
-  $("#funBoxTheme").attr("href", ``);
+  if (
+    !FunboxList.get(Config.funbox).some((it) => it.functions?.applyGlobalCSS)
+  ) {
+    $("#funBoxTheme").attr("href", ``);
+  }
   $("#words").removeClass("nospace");
   $("#words").removeClass("arrows");
   $("#scanline").remove();
@@ -738,7 +746,9 @@ FunboxList.setFunboxFunctions("crt", {
     $("body").addClass("crtmode");
   },
   applyCSS(): void {
-    $("#funBoxTheme").attr("href", `funbox/crt.css`);
+    if ($("#funBoxTheme").attr("href") != "funbox/crt.css") {
+      $("#funBoxTheme").attr("href", `funbox/crt.css`);
+    }
   },
   applyGlobalCSS(): void {
     this.applyConfig?.();

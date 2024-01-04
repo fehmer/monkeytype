@@ -342,7 +342,7 @@ function applyCustomBackground(): void {
     $("#words").addClass("noErrorBorder");
     $("#resultWordsHistory").addClass("noErrorBorder");
     $(".customBackground").html(
-      `<img src="${Config.customBackground}" alt="" />`
+      `<img src="${Config.customBackground}" alt="" crossorigin="" />`
     );
     BackgroundFilter.apply();
     applyCustomBackgroundSize();

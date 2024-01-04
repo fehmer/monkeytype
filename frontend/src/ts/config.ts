@@ -1725,7 +1725,7 @@ export function setCustomBackground(value: string, nosave?: boolean): boolean {
 
   value = value.trim();
   if (
-    (/(https|http):\/\/(www\.|).+\..+\/.+(\.png|\.gif|\.jpeg|\.jpg)/gi.test(
+    (/(https|http):\/\/(www\.|).+\..+\/.+(\.png|\.gif|\.jpeg|\.jpg|\.webp)/gi.test(
       value
     ) &&
       !/[<> "]/.test(value)) ||

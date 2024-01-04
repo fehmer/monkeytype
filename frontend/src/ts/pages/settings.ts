@@ -18,6 +18,7 @@ import { Auth } from "../firebase";
 import Ape from "../ape";
 import { areFunboxesCompatible } from "../test/funbox/funbox-validation";
 import { get as getTypingSpeedUnit } from "../utils/typing-speed-units";
+import { prominent } from "color.js";
 
 import * as Skeleton from "../popups/skeleton";
 
@@ -887,8 +888,10 @@ export async function update(groupUpdate = true): Promise<void> {
 
   if (Config.customBackground !== "") {
     $(".pageSettings .section.customBackgroundFilter").removeClass("hidden");
+    $("#generateCustomColorsFromBackground").removeAttr("disabled");
   } else {
     $(".pageSettings .section.customBackgroundFilter").addClass("hidden");
+    $("#generateCustomColorsFromBackground").attr("disabled", "disabled");
   }
 
   if (Auth?.currentUser) {
@@ -1208,6 +1211,32 @@ $(".pageSettings .section.discordIntegration .getLinkAndGoToOauth").on(
     });
   }
 );
+
+$(".pageSettings #generateCustomColorsFromBackground").on("click", async () => {
+  const background = Config.customBackground;
+  if (!background) return;
+
+  const colors = (await prominent(background, {
+    amount: 7,
+    format: "hex",
+  })) as string[];
+
+  Config.customThemeColors = [
+    colors[0],
+    colors[1],
+    colors[1],
+    colors[2],
+    colors[3],
+    colors[4],
+    colors[5],
+    colors[6],
+    colors[5],
+    colors[6],
+  ];
+
+  await ThemePicker.setCustomInputs();
+  await DB.saveConfig(Config);
+});
 
 let configEventDisabled = false;
 export function setEventDisabled(value: boolean): void {

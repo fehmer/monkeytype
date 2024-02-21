@@ -5,7 +5,7 @@ import Config, * as UpdateConfig from "../config";
 import * as CustomText from "./custom-text";
 import * as TimerProgress from "./timer-progress";
 import * as LiveWpm from "./live-wpm";
-import * as TestStats from "./test-stats";
+import TestStatsImpl from "./test-stats";
 import * as TestInput from "./test-input";
 import * as TestWords from "./test-words";
 import * as Monkey from "./monkey";
@@ -56,7 +56,7 @@ function updateTimer(): void {
 
 function calculateWpmRaw(): MonkeyTypes.WpmAndRaw {
   if (timerDebug) console.time("calculate wpm and raw");
-  const wpmAndRaw = TestStats.calculateWpmAndRaw();
+  const wpmAndRaw = TestStatsImpl.calculateWpmAndRaw();
   if (timerDebug) console.timeEnd("calculate wpm and raw");
   if (timerDebug) console.time("update live wpm");
   LiveWpm.update(wpmAndRaw.wpm, wpmAndRaw.raw);
@@ -77,7 +77,7 @@ function monkey(wpmAndRaw: MonkeyTypes.WpmAndRaw): void {
 
 function calculateAcc(): number {
   if (timerDebug) console.time("calculate acc");
-  const acc = Misc.roundTo2(TestStats.calculateAccuracy());
+  const acc = Misc.roundTo2(TestStatsImpl.calculateAccuracy());
   if (timerDebug) console.timeEnd("calculate acc");
   return acc;
 }
@@ -199,7 +199,7 @@ export async function start(): Promise<void> {
   SlowTimer.clear();
   slowTimerCount = 0;
   timerStats = [];
-  expected = TestStats.start + interval;
+  expected = TestStatsImpl.start + interval;
   (function loop(): void {
     const delay = expected - performance.now();
     timerStats.push({

@@ -18,7 +18,7 @@ import * as FunboxList from "./funbox/funbox-list";
 import * as PbCrown from "./pb-crown";
 import * as TestConfig from "./test-config";
 import * as TestInput from "./test-input";
-import * as TestStats from "./test-stats";
+import TestStatsImpl from "./test-stats";
 import * as TestUI from "./test-ui";
 import * as TodayTracker from "./today-tracker";
 import * as ConfigEvent from "../observables/config-event";
@@ -52,7 +52,7 @@ async function updateGraph(): Promise<void> {
   const labels = [];
 
   for (let i = 1; i <= TestInput.wpmHistory.length; i++) {
-    if (TestStats.lastSecondNotRound && i === TestInput.wpmHistory.length) {
+    if (TestStatsImpl.lastSecondNotRound && i === TestInput.wpmHistory.length) {
       labels.push(Misc.roundTo2(result.testDuration).toString());
     } else {
       labels.push(i.toString());
@@ -78,7 +78,7 @@ async function updateGraph(): Promise<void> {
 
   if (
     Config.mode !== "time" &&
-    TestStats.lastSecondNotRound &&
+    TestStatsImpl.lastSecondNotRound &&
     result.testDuration % 1 < 0.5
   ) {
     labels.pop();
@@ -601,7 +601,7 @@ function updateOther(
   if (afkDetected) {
     otherText += "<br>afk detected";
   }
-  if (TestStats.invalid) {
+  if (TestStatsImpl.invalid) {
     otherText += "<br>invalid";
     const extra: string[] = [];
     if (

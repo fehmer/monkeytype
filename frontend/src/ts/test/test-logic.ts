@@ -7,7 +7,7 @@ import * as Misc from "../utils/misc";
 import * as Notifications from "../elements/notifications";
 import * as CustomText from "./custom-text";
 import * as CustomTextState from "../states/custom-text-name";
-import * as TestStats from "./test-stats";
+import TestStatsImpl from "./test-stats";
 import * as PractiseWords from "./practise-words";
 import * as ShiftTracker from "./shift-tracker";
 import * as Focus from "./focus";
@@ -111,7 +111,7 @@ export function startTest(now: number): boolean {
     }
   } catch (e) {}
   //use a recursive self-adjusting timer to avoid time drift
-  TestStats.setStart(now);
+  TestStatsImpl.setStart(now);
   void TestTimer.start();
   return true;
 }
@@ -203,14 +203,14 @@ export function restart(options = {} as RestartOptions): void {
       TestInput.pushKeypressesToHistory();
       TestInput.pushErrorToHistory();
       TestInput.pushAfkToHistory();
-      const testSeconds = TestStats.calculateTestSeconds(performance.now());
-      const afkseconds = TestStats.calculateAfkSeconds(testSeconds);
+      const testSeconds = TestStatsImpl.calculateTestSeconds(performance.now());
+      const afkseconds = TestStatsImpl.calculateAfkSeconds(testSeconds);
       let tt = Misc.roundTo2(testSeconds - afkseconds);
       if (tt < 0) tt = 0;
-      TestStats.incrementIncompleteSeconds(tt);
-      TestStats.incrementRestartCount();
-      const acc = Misc.roundTo2(TestStats.calculateAccuracy());
-      TestStats.pushIncompleteTest(acc, tt);
+      TestStatsImpl.incrementIncompleteSeconds(tt);
+      TestStatsImpl.incrementRestartCount();
+      const acc = Misc.roundTo2(TestStatsImpl.calculateAccuracy());
+      TestStatsImpl.pushIncompleteTest(acc, tt);
     }
   }
 
@@ -254,7 +254,7 @@ export function restart(options = {} as RestartOptions): void {
 
   ManualRestart.reset();
   TestTimer.clear();
-  TestStats.restart();
+  TestStatsImpl.restart();
   TestInput.restart();
   TestInput.corrected.reset();
   ShiftTracker.reset();
@@ -696,29 +696,29 @@ function buildCompletedEvent(
 ): SharedTypes.CompletedEvent {
   //build completed event object
   let stfk = Misc.roundTo2(
-    TestInput.keypressTimings.spacing.first - TestStats.start
+    TestInput.keypressTimings.spacing.first - TestStatsImpl.start
   );
   if (stfk < 0 || Config.mode === "zen") {
     stfk = 0;
   }
 
   let lkte = Misc.roundTo2(
-    TestStats.end - TestInput.keypressTimings.spacing.last
+    TestStatsImpl.end - TestInput.keypressTimings.spacing.last
   );
   if (lkte < 0 || Config.mode === "zen") {
     lkte = 0;
   }
   // stats
-  const stats = TestStats.calculateStats();
+  const stats = TestStatsImpl.calculateStats();
   if (stats.time % 1 !== 0 && Config.mode !== "time") {
-    TestStats.setLastSecondNotRound();
+    TestStatsImpl.setLastSecondNotRound();
   }
 
   PaceCaret.setLastTestWpm(stats.wpm); //todo why is this in here?
 
   // if the last second was not rounded, add another data point to the history
-  if (TestStats.lastSecondNotRound && !difficultyFailed) {
-    const wpmAndRaw = TestStats.calculateWpmAndRaw();
+  if (TestStatsImpl.lastSecondNotRound && !difficultyFailed) {
+    const wpmAndRaw = TestStatsImpl.calculateWpmAndRaw();
     TestInput.pushToWpmHistory(wpmAndRaw.wpm);
     TestInput.pushToRawHistory(wpmAndRaw.raw);
     TestInput.pushKeypressesToHistory();
@@ -735,7 +735,7 @@ function buildCompletedEvent(
   // if (TestStats.lastSecondNotRound && stats.time % 1 >= 0.1) {
   if (
     Config.mode !== "time" &&
-    TestStats.lastSecondNotRound &&
+    TestStatsImpl.lastSecondNotRound &&
     stats.time % 1 >= 0.5
   ) {
     const timescale = 1 / (stats.time % 1);
@@ -804,7 +804,7 @@ function buildCompletedEvent(
   }
 
   const duration = parseFloat(stats.time.toString());
-  const afkDuration = TestStats.calculateAfkSeconds(duration);
+  const afkDuration = TestStatsImpl.calculateAfkSeconds(duration);
   let language = Config.language;
   if (Config.mode === "quote") {
     language = Misc.removeLanguageSize(Config.language);
@@ -831,12 +831,12 @@ function buildCompletedEvent(
     lazyMode: Config.lazyMode,
     timestamp: Date.now(),
     language: language,
-    restartCount: TestStats.restartCount,
-    incompleteTests: TestStats.incompleteTests,
+    restartCount: TestStatsImpl.restartCount,
+    incompleteTests: TestStatsImpl.incompleteTests,
     incompleteTestSeconds:
-      TestStats.incompleteSeconds < 0
+      TestStatsImpl.incompleteSeconds < 0
         ? 0
-        : Misc.roundTo2(TestStats.incompleteSeconds),
+        : Misc.roundTo2(TestStatsImpl.incompleteSeconds),
     difficulty: Config.difficulty,
     blindMode: Config.blindMode,
     tags: activeTagsIds,
@@ -866,7 +866,7 @@ export async function finish(difficultyFailed = false): Promise<void> {
   if (!TestState.isActive) return;
   TestUI.setResultCalculating(true);
   const now = performance.now();
-  TestStats.setEnd(now);
+  TestStatsImpl.setEnd(now);
 
   await Misc.sleep(1); //this is needed to make sure the last keypress is registered
   if (TestInput.input.current.length !== 0) {
@@ -879,7 +879,7 @@ export async function finish(difficultyFailed = false): Promise<void> {
 
   const endAfkSeconds = (now - TestInput.keypressTimings.spacing.last) / 1000;
   if ((Config.mode === "zen" || TestState.bailedOut) && endAfkSeconds < 7) {
-    TestStats.setEnd(TestInput.keypressTimings.spacing.last);
+    TestStatsImpl.setEnd(TestInput.keypressTimings.spacing.last);
   }
 
   TestUI.setResultVisible(true);
@@ -897,13 +897,13 @@ export async function finish(difficultyFailed = false): Promise<void> {
 
   //need one more calculation for the last word if test auto ended
   if (TestInput.burstHistory.length !== TestInput.input.getHistory()?.length) {
-    const burst = TestStats.calculateBurst();
+    const burst = TestStatsImpl.calculateBurst();
     TestInput.pushBurstToHistory(burst);
   }
 
   //remove afk from zen
   if (Config.mode === "zen" || TestState.bailedOut) {
-    TestStats.removeAfkData();
+    TestStatsImpl.removeAfkData();
   }
 
   const ce = buildCompletedEvent(difficultyFailed);
@@ -1002,7 +1002,7 @@ export async function finish(difficultyFailed = false): Promise<void> {
       completedEvent.mode2 === "10")
   ) {
     Notifications.add("Test invalid - wpm", 0);
-    TestStats.setInvalid();
+    TestStatsImpl.setInvalid();
     dontSave = true;
   } else if (
     completedEvent.rawWpm < 0 ||
@@ -1014,7 +1014,7 @@ export async function finish(difficultyFailed = false): Promise<void> {
       completedEvent.mode2 === "10")
   ) {
     Notifications.add("Test invalid - raw", 0);
-    TestStats.setInvalid();
+    TestStatsImpl.setInvalid();
     dontSave = true;
   } else if (
     (!DB.getSnapshot()?.lbOptOut &&
@@ -1023,7 +1023,7 @@ export async function finish(difficultyFailed = false): Promise<void> {
       (completedEvent.acc < 50 || completedEvent.acc > 100))
   ) {
     Notifications.add("Test invalid - accuracy", 0);
-    TestStats.setInvalid();
+    TestStatsImpl.setInvalid();
     dontSave = true;
   }
 
@@ -1035,8 +1035,8 @@ export async function finish(difficultyFailed = false): Promise<void> {
     let tt = Misc.roundTo2(testSeconds - afkseconds);
     if (tt < 0) tt = 0;
     const acc = completedEvent.acc;
-    TestStats.incrementIncompleteSeconds(tt);
-    TestStats.pushIncompleteTest(acc, tt);
+    TestStatsImpl.incrementIncompleteSeconds(tt);
+    TestStatsImpl.pushIncompleteTest(acc, tt);
   }
 
   const customTextName = CustomTextState.getCustomTextName();
@@ -1078,9 +1078,9 @@ export async function finish(difficultyFailed = false): Promise<void> {
   if (!dontSave) {
     TodayTracker.addSeconds(
       completedEvent.testDuration +
-        (TestStats.incompleteSeconds < 0
+        (TestStatsImpl.incompleteSeconds < 0
           ? 0
-          : Misc.roundTo2(TestStats.incompleteSeconds)) -
+          : Misc.roundTo2(TestStatsImpl.incompleteSeconds)) -
         completedEvent.afkDuration
     );
     Result.updateTodayTracker();
@@ -1098,7 +1098,7 @@ export async function finish(difficultyFailed = false): Promise<void> {
 
   $("#result .stats .dailyLeaderboard").addClass("hidden");
 
-  TestStats.setLastResult(JSON.parse(JSON.stringify(completedEvent)));
+  TestStatsImpl.setLastResult(JSON.parse(JSON.stringify(completedEvent)));
 
   if (!ConnectionState.get()) {
     ConnectionState.showOfflineBanner();
@@ -1132,7 +1132,7 @@ export async function finish(difficultyFailed = false): Promise<void> {
 
   // user is logged in
 
-  TestStats.resetIncomplete();
+  TestStatsImpl.resetIncomplete();
 
   completedEvent.uid = Auth?.currentUser?.uid as string;
   Result.updateRateQuote(TestWords.randomQuote);
@@ -1307,14 +1307,14 @@ export function fail(reason: string): void {
   TestInput.pushAfkToHistory();
   void finish(true);
   if (!TestState.savingEnabled) return;
-  const testSeconds = TestStats.calculateTestSeconds(performance.now());
-  const afkseconds = TestStats.calculateAfkSeconds(testSeconds);
+  const testSeconds = TestStatsImpl.calculateTestSeconds(performance.now());
+  const afkseconds = TestStatsImpl.calculateAfkSeconds(testSeconds);
   let tt = Misc.roundTo2(testSeconds - afkseconds);
   if (tt < 0) tt = 0;
-  TestStats.incrementIncompleteSeconds(tt);
-  TestStats.incrementRestartCount();
-  const acc = Misc.roundTo2(TestStats.calculateAccuracy());
-  TestStats.pushIncompleteTest(acc, tt);
+  TestStatsImpl.incrementIncompleteSeconds(tt);
+  TestStatsImpl.incrementRestartCount();
+  const acc = Misc.roundTo2(TestStatsImpl.calculateAccuracy());
+  TestStatsImpl.pushIncompleteTest(acc, tt);
 }
 
 $(".pageTest").on("click", "#testModesNotice .textButton.restart", () => {

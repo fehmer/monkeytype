@@ -98,7 +98,7 @@ import * as Settings from "../pages/settings";
 import * as Notifications from "../elements/notifications";
 import * as VideoAdPopup from "../popups/video-ad-popup";
 import * as ShareTestSettingsPopup from "../popups/share-test-settings-popup";
-import * as TestStats from "../test/test-stats";
+import TestStatsImpl from "../test/test-stats";
 import * as QuoteSearchPopup from "../popups/quote-search-popup";
 import * as FPSCounter from "../elements/fps-counter";
 
@@ -420,7 +420,7 @@ export const commands: MonkeyTypes.CommandsSubgroup = {
       visible: false,
       exec: async (): Promise<void> => {
         navigator.clipboard
-          .writeText(JSON.stringify(TestStats.getStats()))
+          .writeText(JSON.stringify(TestStatsImpl.getStats()))
           .then(() => {
             Notifications.add("Copied to clipboard", 1);
           })

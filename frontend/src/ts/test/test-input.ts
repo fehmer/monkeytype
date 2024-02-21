@@ -1,6 +1,30 @@
 import * as TestWords from "./test-words";
 import { mean, roundTo2 } from "../utils/misc";
 
+type AccuracyType = {
+  correct: number;
+  incorrect: number;
+};
+type KeyOverlapType = {
+  total: number;
+  lastStartTime: number;
+};
+
+export type TestInputType = {
+  afkHistory: boolean[];
+  errorHistory: ErrorHistoryObject[];
+  wpmHistory: number[];
+  rawHistory: number[];
+  burstHistory: number[];
+  keypressCountHistory: number[];
+  currentBurstStart: number;
+  missedWords: Record<string, number>;
+  accuracy: AccuracyType;
+  keypressTimings: KeypressTimings;
+  keyOverlap: KeyOverlapType;
+  input: Input;
+};
+
 const keysToTrack = [
   "NumpadMultiply",
   "NumpadSubtract",

@@ -1,6 +1,6 @@
 import * as TestLogic from "../test/test-logic";
 import * as TestUI from "../test/test-ui";
-import * as TestStats from "../test/test-stats";
+import TestStatsImpl from "../test/test-stats";
 import * as Monkey from "../test/monkey";
 import Config from "../config";
 import * as Misc from "../utils/misc";
@@ -54,7 +54,7 @@ function setWordsInput(value: string): void {
 }
 
 function updateUI(): void {
-  const acc: number = Misc.roundTo2(TestStats.calculateAccuracy());
+  const acc: number = Misc.roundTo2(TestStatsImpl.calculateAccuracy());
   if (!isNaN(acc)) LiveAcc.update(acc);
 
   if (Config.keymapMode === "next" && Config.mode !== "zen") {
@@ -195,7 +195,7 @@ function handleSpace(): void {
 
   dontInsertSpace = true;
 
-  const burst: number = TestStats.calculateBurst();
+  const burst: number = TestStatsImpl.calculateBurst();
   void LiveBurst.update(Math.round(burst));
   TestInput.pushBurstToHistory(burst);
 

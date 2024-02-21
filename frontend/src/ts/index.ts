@@ -12,7 +12,7 @@ import * as DB from "./db";
 import "./ui";
 import "./controllers/ad-controller";
 import Config from "./config";
-import * as TestStats from "./test/test-stats";
+import TestStatsImpl from "./test/test-stats";
 import * as Replay from "./test/replay";
 import * as TestTimer from "./test/test-timer";
 import * as Result from "./test/result";
@@ -58,7 +58,7 @@ extendedGlobal.toggleFilterDebug = Account.toggleFilterDebug;
 
 extendedGlobal.glarsesMode = enable;
 
-extendedGlobal.stats = TestStats.getStats;
+extendedGlobal.stats = TestStatsImpl.getStats;
 
 extendedGlobal.replay = Replay.getReplayExport;
 

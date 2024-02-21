@@ -1,4 +1,4 @@
-import * as TestStats from "../test/test-stats";
+import TestStatsImpl from "../test/test-stats";
 import * as TestUI from "../test/test-ui";
 import * as ManualRestart from "../test/manual-restart-tracker";
 import * as TestLogic from "../test/test-logic";
@@ -26,7 +26,7 @@ export const page = new Page(
   },
   async () => {
     updateFooterAndVerticalAds(false);
-    TestStats.resetIncomplete();
+    TestStatsImpl.resetIncomplete();
     ManualRestart.set();
     TestLogic.restart({
       noAnim: true,

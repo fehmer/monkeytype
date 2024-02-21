@@ -5,7 +5,7 @@ import * as UpdateConfig from "../config";
 import * as Loader from "../elements/loader";
 import * as Notifications from "../elements/notifications";
 import * as Settings from "../pages/settings";
-import * as ApeKeysPopup from "../popups/ape-keys-popup";
+import ApeKeysPopup from "../popups/ape-keys-popup";
 import * as ThemePicker from "../settings/theme-picker";
 import * as CustomText from "../test/custom-text";
 import * as SavedTextsPopup from "./saved-texts-popup";
@@ -396,6 +396,7 @@ $("#simplePopupWrapper").on("mousedown", (e) => {
 });
 
 $("#popups").on("submit", "#simplePopupWrapper form", (e) => {
+  console.log("##### submit", e);
   e.preventDefault();
   const id = $("#simplePopup").attr("popupId") as PopupKey;
   (list[id] as SimplePopup).exec();
@@ -1890,3 +1891,14 @@ function isUsingPasswordAuthentication(): boolean {
     ) !== undefined
   );
 }
+
+$(".popupWrapper").on("scroll touchmove mousewheel", (e) => {
+  console.log("#### scroll on ", e.target);
+  if (e.target.classList.contains("popupWrapper")) {
+    console.log("##### block");
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  }
+  return true;
+});

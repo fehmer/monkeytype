@@ -2,7 +2,7 @@ import * as TestLogic from "../test/test-logic";
 import Config, * as UpdateConfig from "../config";
 import * as ManualRestart from "../test/manual-restart-tracker";
 import * as CustomWordAmountPopup from "./custom-word-amount-popup";
-import * as CustomTestDurationPopup from "./custom-test-duration-popup";
+import CustomTestDurationPopup from "./custom-test-duration-popup";
 import * as QuoteSearchPopup from "./quote-search-popup";
 import * as CustomTextPopup from "./custom-text-popup";
 import * as ConfigEvent from "../observables/config-event";
@@ -117,12 +117,12 @@ el.find(".wordsGroup button").on("click", (e) => {
   }
 });
 
-el.find(".timeGroup button").on("click", (e) => {
+el.find(".timeGroup button").on("click", async (e) => {
   const time = $(e.currentTarget).attr("data-time");
 
   if (time === "custom") {
     hidePopup();
-    CustomTestDurationPopup.show();
+    await CustomTestDurationPopup.show();
   } else if (time !== undefined) {
     const timeNum = parseInt(time);
     UpdateConfig.setTimeConfig(timeNum);

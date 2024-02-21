@@ -11,8 +11,8 @@ import * as Notifications from "../elements/notifications";
 import * as ImportExportSettingsPopup from "../popups/import-export-settings-popup";
 import * as ConfigEvent from "../observables/config-event";
 import * as ActivePage from "../states/active-page";
-import * as ApeKeysPopup from "../popups/ape-keys-popup";
-import * as CookiePopup from "../popups/cookie-popup";
+import ApeKeysPopup from "../popups/ape-keys-popup";
+import CookiePopup from "../popups/cookie-popup";
 import Page from "./page";
 import { getAuthenticatedUser, isAuthenticated } from "../firebase";
 import Ape from "../ape";
@@ -1247,10 +1247,13 @@ $(".pageSettings .quickNav .links a").on("click", (e) => {
   isOpen && toggleSettingsGroup(settingsGroup);
 });
 
-$(".pageSettings .section.updateCookiePreferences button").on("click", () => {
-  CookiePopup.show();
-  CookiePopup.showSettings();
-});
+$(".pageSettings .section.updateCookiePreferences button").on(
+  "click",
+  async () => {
+    await CookiePopup.show();
+    CookiePopup.showSettings();
+  }
+);
 
 $(".pageSettings .section.discordIntegration .getLinkAndGoToOauth").on(
   "click",

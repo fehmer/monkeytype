@@ -1,167 +1,132 @@
 import { activateAnalytics } from "../controllers/analytics-controller";
 import { focusWords } from "../test/test-ui";
 import * as Notifications from "../elements/notifications";
-import * as Skeleton from "./skeleton";
-import { isPopupVisible } from "../utils/misc";
 import * as AdController from "../controllers/ad-controller";
-
-const wrapperId = "cookiePopupWrapper";
-
-let visible = false;
+import Popup from "./popup";
 
 type Accepted = {
   security: boolean;
   analytics: boolean;
 };
 
-function getAcceptedObject(): Accepted | null {
-  const acceptedCookies = localStorage.getItem("acceptedCookies") ?? "";
-  if (acceptedCookies) {
-    return JSON.parse(acceptedCookies);
-  } else {
-    return null;
+const cookiePopup = new (class extends Popup {
+  private visible = false;
+  override animationTime = 0;
+
+  override async show(): Promise<void> {
+    await super.show();
+    this.visible = true;
+    this.verifyVisible();
+    if (!this.visible) {
+      super.hide();
+    }
   }
-}
 
-function setAcceptedObject(obj: Accepted): void {
-  localStorage.setItem("acceptedCookies", JSON.stringify(obj));
-}
-
-export function check(): void {
-  const accepted = getAcceptedObject();
-  if (accepted === null) {
-    show();
-  }
-}
-
-export function isVisible(): boolean {
-  return visible;
-}
-
-export function show(): void {
-  Skeleton.append(wrapperId);
-  $("#cookiePopupWrapper").removeClass("hidden");
-  visible = true;
-  if (
-    $("#cookiePopupWrapper")[0] === undefined ||
-    !$("#cookiePopupWrapper").is(":visible") ||
-    $("#cookiePopupWrapper").outerHeight(true) === 0
-  ) {
-    //removed by cookie popup blocking extension
-    $("#cookiePopupWrapper").addClass("hidden");
-    visible = false;
-    Skeleton.remove(wrapperId);
-    return;
-  }
-  if (!isPopupVisible(wrapperId)) {
-    $("#cookiePopupWrapper")
-      .stop(true, true)
-      .css("opacity", 0)
-      .removeClass("hidden")
-      .animate({ opacity: 1 }, 0, () => {
-        if (
-          !$("#cookiePopupWrapper").is(":visible") ||
-          $("#cookiePopupWrapper").outerHeight(true) === 0
-        ) {
-          visible = false;
-        } else {
-          visible = true;
-        }
-      });
-  }
-}
-
-async function hide(): Promise<void> {
-  if (isPopupVisible(wrapperId)) {
+  override hide(): void {
+    console.log("cookie hide");
+    super.hide();
     focusWords();
-    $("#cookiePopupWrapper")
-      .stop(true, true)
-      .css("opacity", 1)
-      .animate(
-        {
-          opacity: 0,
-        },
-        125,
-        () => {
-          $("#cookiePopupWrapper").addClass("hidden");
-          visible = false;
-          Skeleton.remove(wrapperId);
-        }
+    this.visible = false;
+  }
+
+  getAcceptedObject(): Accepted | null {
+    const acceptedCookies = localStorage.getItem("acceptedCookies") ?? "";
+    if (acceptedCookies) {
+      return JSON.parse(acceptedCookies);
+    } else {
+      return null;
+    }
+  }
+
+  setAcceptedObject(obj: Accepted): void {
+    localStorage.setItem("acceptedCookies", JSON.stringify(obj));
+  }
+  async check(): Promise<void> {
+    const accepted = this.getAcceptedObject();
+    if (accepted === null) {
+      await this.show();
+    }
+  }
+  isVisible(): boolean {
+    return this.visible;
+  }
+
+  showSettings(): void {
+    $("#cookiePopup .main").addClass("hidden");
+    $("#cookiePopup .settings").removeClass("hidden");
+  }
+
+  verifyVisible(): void {
+    if (!this.visible) return;
+    if (
+      $(`#${this.wrapperId}`)[0] === undefined ||
+      !$(`#${this.wrapperId}`).is(":visible") ||
+      $(`#${this.wrapperId}`).outerHeight(true) === 0
+    ) {
+      //removed by cookie popup blocking extension
+      this.visible = false;
+    }
+  }
+  override postShow(): void {
+    $("#cookiePopup .acceptAll").on("click", () => {
+      const accepted = {
+        security: true,
+        analytics: true,
+      };
+      cookiePopup.setAcceptedObject(accepted);
+      activateAnalytics();
+      cookiePopup.hide();
+    });
+
+    $("#cookiePopup .rejectAll").on("click", () => {
+      const accepted = {
+        security: true,
+        analytics: false,
+      };
+      cookiePopup.setAcceptedObject(accepted);
+      cookiePopup.hide();
+    });
+
+    $("#cookiePopup .acceptSelected").on("click", () => {
+      console.log("cookie hide");
+      const analytics = $("#cookiePopup .cookie.analytics input").prop(
+        "checked"
       );
+      const accepted = {
+        security: true,
+        analytics,
+      };
+      cookiePopup.setAcceptedObject(accepted);
+      cookiePopup.hide();
+
+      if (analytics === true) {
+        activateAnalytics();
+      }
+    });
+
+    $("#cookiePopup .openSettings").on("click", () => {
+      cookiePopup.showSettings();
+    });
+
+    $("#cookiePopup .cookie.ads .textButton").on("click", () => {
+      try {
+        AdController.showConsentPopup();
+      } catch (e) {
+        console.error("Failed to open ad consent UI");
+        Notifications.add(
+          "Failed to open Ad consent popup. Do you have an ad or cookie popup blocker enabled?",
+          -1
+        );
+      }
+    });
   }
-}
-
-export function showSettings(): void {
-  $("#cookiePopup .main").addClass("hidden");
-  $("#cookiePopup .settings").removeClass("hidden");
-}
-
-function verifyVisible(): void {
-  if (!visible) return;
-  if (
-    $("#cookiePopupWrapper")[0] === undefined ||
-    !$("#cookiePopupWrapper").is(":visible") ||
-    $("#cookiePopupWrapper").outerHeight(true) === 0
-  ) {
-    //removed by cookie popup blocking extension
-    visible = false;
-  }
-}
-
-$("#cookiePopup .acceptAll").on("click", () => {
-  const accepted = {
-    security: true,
-    analytics: true,
-  };
-  setAcceptedObject(accepted);
-  activateAnalytics();
-  void hide();
-});
-
-$("#cookiePopup .rejectAll").on("click", () => {
-  const accepted = {
-    security: true,
-    analytics: false,
-  };
-  setAcceptedObject(accepted);
-  void hide();
-});
-
-$("#cookiePopup .acceptSelected").on("click", () => {
-  const analytics = $("#cookiePopup .cookie.analytics input").prop("checked");
-  const accepted = {
-    security: true,
-    analytics,
-  };
-  setAcceptedObject(accepted);
-  void hide();
-
-  if (analytics === true) {
-    activateAnalytics();
-  }
-});
-
-$("#cookiePopup .openSettings").on("click", () => {
-  showSettings();
-});
+})("cookiePopupWrapper");
 
 $(document).on("keypress", (e) => {
-  verifyVisible();
-  if (visible) {
+  cookiePopup.verifyVisible();
+  if (cookiePopup.isVisible()) {
     e.preventDefault();
   }
 });
 
-$("#cookiePopup .cookie.ads .textButton").on("click", () => {
-  try {
-    AdController.showConsentPopup();
-  } catch (e) {
-    console.error("Failed to open ad consent UI");
-    Notifications.add(
-      "Failed to open Ad consent popup. Do you have an ad or cookie popup blocker enabled?",
-      -1
-    );
-  }
-});
-
-Skeleton.save(wrapperId);
+export default cookiePopup;

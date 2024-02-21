@@ -5,7 +5,7 @@ import * as MonkeyPower from "./elements/monkey-power";
 import * as NewVersionNotification from "./elements/version-check";
 import * as Notifications from "./elements/notifications";
 import * as Focus from "./test/focus";
-import * as CookiePopup from "./popups/cookie-popup";
+import CookiePopup from "./popups/cookie-popup";
 import * as PSA from "./elements/psa";
 import * as ConnectionState from "./states/connection";
 import { Workbox } from "workbox-window";
@@ -41,7 +41,7 @@ $(document).ready(() => {
   Misc.loadCSS("/./css/balloon.min.css", true);
   Misc.loadCSS("/./css/fa.min.css", true);
 
-  CookiePopup.check();
+  void CookiePopup.check();
 
   $("body").css("transition", "background .25s, transform .05s");
   if (Config.quickRestart !== "off") {

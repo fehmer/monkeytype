@@ -343,6 +343,20 @@
     margin: 0.25em 0.5em 0.75em 0;
   }
 
+  &.customWhitespace {
+    .word {
+      margin-left: 0;
+      margin-right: 0;
+
+      &::after {
+        margin-left: 0.1em;
+        margin-right: 0.1em;
+        content: "-"; //var(--custom-whitespace);
+        color: var(--sub-color);
+      }
+    }
+  }
+
   @include highlightMode(var(--text-color));
 }
 

@@ -1,4 +1,4 @@
-FROM node:hydrogen-alpine as builder
+FROM node:hydrogen-alpine3.17 as builder
 WORKDIR /app
 
 #ENV

@@ -27,7 +27,6 @@ import FirebaseAdmin from "../../init/firebase-admin";
 import {
   removeTokensFromCacheByUid,
   deleteUser as firebaseDeleteUser,
-  deleteUserIgnoreError as firebaseDeleteUserIgnoreError,
 } from "../../utils/auth";
 import * as Dates from "date-fns";
 import { UTCDateMini } from "@date-fns/utc";
@@ -1022,4 +1021,12 @@ export async function getTestActivity(
   }
 
   return new MonkeyResponse("Test activity data retrieved", user.testActivity);
+}
+
+async function firebaseDeleteUserIgnoreError(uid: string): Promise<void> {
+  try {
+    await firebaseDeleteUser(uid);
+  } catch (e) {
+    //ignore
+  }
 }

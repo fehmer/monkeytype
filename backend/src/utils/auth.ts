@@ -64,14 +64,6 @@ export async function deleteUser(uid: string): Promise<void> {
   removeTokensFromCacheByUid(uid);
 }
 
-export async function deleteUserIgnoreError(uid: string): Promise<void> {
-  try {
-    await deleteUser(uid);
-  } catch (e) {
-    //ignore
-  }
-}
-
 export function removeTokensFromCacheByUid(uid: string): void {
   for (const entry of tokenCache.entries()) {
     if (entry[1].uid === uid) {

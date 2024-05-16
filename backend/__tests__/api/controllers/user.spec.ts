@@ -14,6 +14,7 @@ import * as ResultDal from "../../../src/dal/result";
 import * as DailyLeaderboards from "../../../src/utils/daily-leaderboards";
 import GeorgeQueue from "../../../src/queues/george-queue";
 import * as AdminUuids from "../../../src/dal/admin-uids";
+import * as DiscordUtils from "../../../src/utils/discord";
 
 const mockApp = request(app);
 const configuration = Configuration.getCachedConfiguration();
@@ -499,6 +500,104 @@ describe("user controller test", () => {
         uid,
         (await configuration).dailyLeaderboards
       );
+    });
+    it("should delete user without adding to blocklist if not banned", async () => {
+      //GIVEN
+      const uid = mockDecodedToken.uid;
+      const user = {
+        uid,
+        name: "name",
+        email: "email",
+        discordId: "discordId",
+      } as unknown as MonkeyTypes.DBUser;
+      getUserMock.mockResolvedValue(user);
+
+      //WHEN
+      await mockApp
+        .delete("/users/")
+        .set("Authorization", "Bearer 123456789")
+        .set({
+          Accept: "application/json",
+        })
+        .expect(200);
+
+      //THEN
+      expect(blocklistAddMock).not.toHaveBeenCalled();
+
+      expect(deleteUserMock).toHaveBeenCalledWith(uid);
+      expect(firebaseDeleteUserMock).toHaveBeenCalledWith(uid);
+      expect(deleteAllApeKeysMock).toHaveBeenCalledWith(uid);
+      expect(deleteAllPresetsMock).toHaveBeenCalledWith(uid);
+      expect(deleteConfigMock).toHaveBeenCalledWith(uid);
+      expect(deleteAllResultMock).toHaveBeenCalledWith(uid);
+      expect(purgeUserFromDailyLeaderboardsMock).toHaveBeenCalledWith(
+        uid,
+        (await configuration).dailyLeaderboards
+      );
+    });
+  });
+  describe("link discord", () => {
+    const getUserMock = vi.spyOn(UserDal, "getUser");
+    const isDiscordIdAvailableMock = vi.spyOn(UserDal, "isDiscordIdAvailable");
+    const isStateValidForUserMock = vi.spyOn(
+      DiscordUtils,
+      "iStateValidForUser"
+    );
+    const getDiscordUserMock = vi.spyOn(DiscordUtils, "getDiscordUser");
+    const blocklistContainsMock = vi.spyOn(BlocklistDal, "contains");
+
+    beforeEach(async () => {
+      isStateValidForUserMock.mockResolvedValue(true);
+      getDiscordUserMock.mockResolvedValue({
+        id: "discordUserId",
+        avatar: "discorUserAvatar",
+        username: "discordUserName",
+        discriminator: "discordUserDiscriminator",
+      });
+      isDiscordIdAvailableMock.mockResolvedValue(true);
+      blocklistContainsMock.mockResolvedValue(false);
+      await enableDiscordIntegration(true);
+    });
+    afterEach(() => {
+      [
+        getUserMock,
+        isStateValidForUserMock,
+        isDiscordIdAvailableMock,
+        getDiscordUserMock,
+      ].forEach((it) => it.mockReset());
+    });
+
+    it("should not link if discordId is blocked", async () => {
+      //GIVEN
+      const uid = mockDecodedToken.uid;
+      const user = {
+        uid,
+        name: "name",
+        email: "email",
+      } as unknown as MonkeyTypes.DBUser;
+      getUserMock.mockResolvedValue(user);
+      blocklistContainsMock.mockResolvedValue(true);
+
+      //WHEN
+      const result = await mockApp
+        .post("/users/discord/link")
+        .set("Authorization", "Bearer 123456789")
+        .set({
+          Accept: "application/json",
+        })
+        .send({
+          tokenType: "tokenType",
+          accessToken: "accessToken",
+          state: "statestatestatestate",
+        })
+        .expect(409);
+
+      //THEN
+      expect(result.body.message).toEqual("The Discord account is blocked");
+
+      expect(blocklistContainsMock).toBeCalledWith({
+        discordId: "discordUserId",
+      });
     });
   });
 });

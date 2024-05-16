@@ -67,11 +67,7 @@ export async function createNewUser(
     return new MonkeyResponse("User created");
   } catch (e) {
     //user was created in firebase from the frontend, remove it
-    try {
-      await firebaseDeleteUser(uid);
-    } catch (e2) {
-      // user might be deleted on the frontend
-    }
+    await firebaseDeleteUser(uid).catch((e) => {});
     throw e;
   }
 }

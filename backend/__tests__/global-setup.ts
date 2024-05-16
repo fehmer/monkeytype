@@ -1,6 +1,5 @@
 import * as MongoDbMock from "vitest-mongodb";
 export async function setup({ provide }): Promise<void> {
-  console.log("global download mongo");
   await MongoDbMock.setup({
     serverOptions: {
       binary: {
@@ -8,10 +7,8 @@ export async function setup({ provide }): Promise<void> {
       },
     },
   });
-  console.log("global download mongo done");
 }
 
 export async function teardown(): Promise<void> {
-  console.log("global teardown mongo");
   await MongoDbMock.teardown();
 }

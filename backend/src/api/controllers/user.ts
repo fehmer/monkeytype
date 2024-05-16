@@ -27,6 +27,7 @@ import FirebaseAdmin from "../../init/firebase-admin";
 import {
   removeTokensFromCacheByUid,
   deleteUser as firebaseDeleteUser,
+  deleteUserIgnoreError as firebaseDeleteUserIgnoreError,
 } from "../../utils/auth";
 import * as Dates from "date-fns";
 import { UTCDateMini } from "@date-fns/utc";
@@ -67,7 +68,7 @@ export async function createNewUser(
     return new MonkeyResponse("User created");
   } catch (e) {
     //user was created in firebase from the frontend, remove it
-    await firebaseDeleteUser(uid).catch(() => {});
+    await firebaseDeleteUserIgnoreError(uid);
     throw e;
   }
 }

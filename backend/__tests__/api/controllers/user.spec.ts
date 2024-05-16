@@ -7,13 +7,11 @@ import _ from "lodash";
 import { DecodedIdToken } from "firebase-admin/lib/auth/token-verifier";
 import * as AuthUtils from "../../../src/utils/auth";
 import * as BlocklistDal from "../../../src/dal/blocklist";
-import { deleteAllApeKeys } from "../../../src/dal/ape-keys";
-
-//import * as ApeKeys from "../../../src/dal/ape-keys";
-//import * as PresetDal from "../../../src/dal/preset";
-//import * as ConfigDal from "../../../src/dal/config";
-//import * as ResultDal from "../../../src/dal/result";
-//import * as DailyLeaderboards from "../../../src/utils/daily-leaderboards";
+import * as ApeKeys from "../../../src/dal/ape-keys";
+import * as PresetDal from "../../../src/dal/preset";
+import * as ConfigDal from "../../../src/dal/config";
+import * as ResultDal from "../../../src/dal/result";
+import * as DailyLeaderboards from "../../../src/utils/daily-leaderboards";
 
 const mockApp = request(app);
 const configuration = Configuration.getCachedConfiguration();
@@ -304,41 +302,44 @@ describe("user controller test", () => {
     const getUserMock = vi.spyOn(UserDal, "getUser");
     const deleteUserMock = vi.spyOn(UserDal, "deleteUser");
     const firebaseDeleteUserMock = vi.spyOn(AuthUtils, "deleteUser");
-    //const deleteAllApeKeysMock = vi.spyOn(ApeKeys, "deleteAllApeKeys");
-    //const deleteAllPresetsMock = vi.spyOn(PresetDal, "deleteAllPresets");
-    //const deleteConfigMock = vi.spyOn(ConfigDal, "deleteConfig");
-    //const deleteAllResultMock = vi.spyOn(ResultDal, "deleteAll");
-    /*const purgeUserFromDailyLeaderboardsMock = vi.spyOn(
+    const deleteAllApeKeysMock = vi.spyOn(ApeKeys, "deleteAllApeKeys");
+    const deleteAllPresetsMock = vi.spyOn(PresetDal, "deleteAllPresets");
+    const deleteConfigMock = vi.spyOn(ConfigDal, "deleteConfig");
+    const deleteAllResultMock = vi.spyOn(ResultDal, "deleteAll");
+    const purgeUserFromDailyLeaderboardsMock = vi.spyOn(
       DailyLeaderboards,
       "purgeUserFromDailyLeaderboards"
-    );*/
+    );
     const blocklistAddMock = vi.spyOn(BlocklistDal, "add");
 
-    /*beforeEach(async () => {
+    beforeEach(() => {
       [
-        //firebaseDeleteUserMock,
-        //deleteUserMock,
-        //blocklistAddMock,
-        //deleteAllApeKeys,
-        //deleteAllPresetsMock,
-        //deleteConfigMock,
-        //deleteAllResultMock,
-        //purgeUserFromDailyLeaderboardsMock,
+        firebaseDeleteUserMock,
+        deleteUserMock,
+        blocklistAddMock,
+        deleteAllApeKeysMock,
+        deleteAllPresetsMock,
+        deleteConfigMock,
+        purgeUserFromDailyLeaderboardsMock,
       ].forEach((it) => it.mockResolvedValue(undefined));
-      */
-    //});
+
+      deleteAllResultMock.mockResolvedValue({} as any);
+    });
+
     afterEach(() => {
       [
         getUserMock,
         deleteUserMock,
         blocklistAddMock,
         firebaseDeleteUserMock,
-        //deleteConfigMock,
-        //deleteAllResultMock,
-        //deleteAllApeKeys,
-        //purgeUserFromDailyLeaderboardsMock,
+        deleteConfigMock,
+        deleteAllResultMock,
+        deleteAllApeKeysMock,
+        deleteAllPresetsMock,
+        purgeUserFromDailyLeaderboardsMock,
       ].forEach((it) => it.mockReset());
     });
+
     it("should add user to blocklist if banned", async () => {
       //GIVEN
       const uid = mockDecodedToken.uid;
@@ -351,7 +352,6 @@ describe("user controller test", () => {
       } as unknown as MonkeyTypes.DBUser;
       await getUserMock.mockResolvedValue(user);
 
-      /*
       //WHEN
       await mockApp
         .delete("/users/")
@@ -373,7 +373,7 @@ describe("user controller test", () => {
       expect(purgeUserFromDailyLeaderboardsMock).toHaveBeenCalledWith(
         uid,
         (await configuration).dailyLeaderboards
-      );*/
+      );
     });
   });
 });

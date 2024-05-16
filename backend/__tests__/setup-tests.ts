@@ -3,6 +3,7 @@ import { afterAll, beforeAll, beforeEach, afterEach } from "vitest";
 import * as MongoDbMock from "vitest-mongodb";
 
 process.env["MODE"] = "dev";
+//process.env["MONGOMS_DISTRO"] = "ubuntu-22.04";
 
 vi.mock("../src/init/db", () => ({
   __esModule: true,
@@ -64,7 +65,7 @@ beforeAll(async () => {
   await MongoDbMock.setup({
     serverOptions: {
       binary: {
-        version: "6.0.12",
+        version: "6.0.15",
       },
     },
   });

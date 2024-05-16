@@ -15,13 +15,7 @@ let client: MongoClient;
 const collectionsForCleanUp = ["users"];
 
 beforeAll(async () => {
-  await MongoDbMock.setup({
-    serverOptions: {
-      binary: {
-        version: "6.0.15",
-      },
-    },
-  });
+  await MongoDbMock.setup({});
 
   client = new MongoClient(globalThis.__MONGO_URI__);
   await client.connect();

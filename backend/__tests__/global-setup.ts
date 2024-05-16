@@ -3,7 +3,7 @@ export async function setup({ provide }): Promise<void> {
   await MongoDbMock.setup({
     serverOptions: {
       binary: {
-        version: "6.0.15",
+        version: "6.0.12",
       },
     },
   });

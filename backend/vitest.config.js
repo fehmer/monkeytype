@@ -5,7 +5,7 @@ export default defineConfig({
     globals: true,
     environment: "node",
     setupFiles: ["__tests__/setup-tests.ts"],
-    //pool: "forks",
+    pool: "forks",
 
     coverage: {
       include: ["**/*.ts"],

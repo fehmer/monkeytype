@@ -24,6 +24,7 @@ beforeAll(async () => {
   });
 
   client = new MongoClient(globalThis.__MONGO_URI__);
+  await client.connect();
   db = client.db();
 
   vi.mock("../src/init/db", () => ({
@@ -31,7 +32,7 @@ beforeAll(async () => {
     getDb: (): Db => db,
     collection: <T>(name: string): Collection<WithId<T>> =>
       db.collection<WithId<T>>(name),
-    close: () => client?.close(),
+    close: () => {},
   }));
 
   vi.mock("../src/utils/logger", () => ({
@@ -82,12 +83,6 @@ afterEach(async () => {
       )
     );
   }
-});
-
-const realDateNow = Date.now;
-
-afterEach(() => {
-  Date.now = realDateNow;
 });
 
 afterAll(async () => {

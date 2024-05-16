@@ -12,6 +12,8 @@ import * as PresetDal from "../../../src/dal/preset";
 import * as ConfigDal from "../../../src/dal/config";
 import * as ResultDal from "../../../src/dal/result";
 import * as DailyLeaderboards from "../../../src/utils/daily-leaderboards";
+import GeorgeQueue from "../../../src/queues/george-queue";
+import * as AdminUuids from "../../../src/dal/admin-uids";
 
 const mockApp = request(app);
 const configuration = Configuration.getCachedConfiguration();
@@ -298,6 +300,129 @@ describe("user controller test", () => {
       expect(testsByDays[365]).toEqual(2024094); //2024-01
     });
   });
+
+  describe("toggle ban", () => {
+    const getUserMock = vi.spyOn(UserDal, "getUser");
+    const setBannedMock = vi.spyOn(UserDal, "setBanned");
+    const georgeUserBannedMock = vi.spyOn(GeorgeQueue, "userBanned");
+    const isAdminMock = vi.spyOn(AdminUuids, "isAdmin");
+    beforeEach(async () => {
+      await enableAdminFeatures(true);
+
+      isAdminMock.mockResolvedValue(true);
+    });
+    afterEach(() => {
+      [getUserMock, setBannedMock, georgeUserBannedMock, isAdminMock].forEach(
+        (it) => it.mockReset()
+      );
+    });
+
+    it("bans user with discord", async () => {
+      //GIVEN
+      const uid = "myUid";
+      const user = {
+        uid,
+        name: "name",
+        email: "email",
+        discordId: "discordId",
+      } as unknown as MonkeyTypes.DBUser;
+      getUserMock.mockResolvedValue(user);
+
+      //WHEN
+      await mockApp
+        .post("/admin/toggleBan")
+        .set("Authorization", "Bearer 123456789")
+        .send({ uid })
+        .set({
+          Accept: "application/json",
+        })
+        .expect(200);
+
+      //THEN
+      expect(getUserMock).toHaveBeenLastCalledWith(uid, "toggle ban");
+      expect(setBannedMock).toHaveBeenCalledWith(uid, true);
+      expect(georgeUserBannedMock).toHaveBeenCalledWith("discordId", true);
+    });
+    it("bans user without discord", async () => {
+      //GIVEN
+      const uid = "myUid";
+      const user = {
+        uid,
+        name: "name",
+        email: "email",
+        discordId: "",
+      } as unknown as MonkeyTypes.DBUser;
+      getUserMock.mockResolvedValue(user);
+
+      //WHEN
+      await mockApp
+        .post("/admin/toggleBan")
+        .set("Authorization", "Bearer 123456789")
+        .send({ uid })
+        .set({
+          Accept: "application/json",
+        })
+        .expect(200);
+
+      //THEN
+      expect(georgeUserBannedMock).not.toHaveBeenCalled();
+    });
+    it("unbans user with discord", async () => {
+      //GIVEN
+      const uid = "myUid";
+
+      const user = {
+        uid,
+        name: "name",
+        email: "email",
+        discordId: "discordId",
+        banned: true,
+      } as unknown as MonkeyTypes.DBUser;
+      getUserMock.mockResolvedValue(user);
+
+      //WHEN
+      await mockApp
+        .post("/admin/toggleBan")
+        .set("Authorization", "Bearer 123456789")
+        .send({ uid })
+        .set({
+          Accept: "application/json",
+        })
+        .expect(200);
+
+      //THEN
+      expect(getUserMock).toHaveBeenLastCalledWith(uid, "toggle ban");
+      expect(setBannedMock).toHaveBeenCalledWith(uid, false);
+      expect(georgeUserBannedMock).toHaveBeenCalledWith("discordId", false);
+    });
+    it("unbans user without discord", async () => {
+      //GIVEN
+      const uid = "myUid";
+
+      const user = {
+        uid,
+        name: "name",
+        email: "email",
+        discordId: "",
+        banned: true,
+      } as unknown as MonkeyTypes.DBUser;
+      getUserMock.mockResolvedValue(user);
+
+      //WHEN
+      await mockApp
+        .post("/admin/toggleBan")
+        .set("Authorization", "Bearer 123456789")
+        .send({ uid })
+        .set({
+          Accept: "application/json",
+        })
+        .expect(200);
+
+      //THEN
+      expect(georgeUserBannedMock).not.toHaveBeenCalled();
+    });
+  });
+
   describe("delete user", () => {
     const getUserMock = vi.spyOn(UserDal, "getUser");
     const deleteUserMock = vi.spyOn(UserDal, "deleteUser");

@@ -69,7 +69,7 @@ export async function createNewUser(
     //user was created in firebase from the frontend, remove it
     try {
       await firebaseDeleteUser(uid);
-    } catch (e) {
+    } catch (e2) {
       // user might be deleted on the frontend
     }
     throw e;

@@ -15,6 +15,7 @@ let client: MongoClient;
 const collectionsForCleanUp = ["users"];
 
 beforeAll(async () => {
+  console.log("download mongo");
   await MongoDbMock.setup({
     serverOptions: {
       binary: {
@@ -22,6 +23,7 @@ beforeAll(async () => {
       },
     },
   });
+  console.log("download mongo done");
 
   client = new MongoClient(globalThis.__MONGO_URI__);
   await client.connect();

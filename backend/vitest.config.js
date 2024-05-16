@@ -8,10 +8,10 @@ export default defineConfig({
     setupFiles: ["__tests__/setup-tests.ts"],
     pool: "forks",
     poolOptions: {
-      forks: {
+      /*forks: {
         minForks: 1,
         maxForks: 2,
-      },
+      },*/
     },
 
     coverage: {

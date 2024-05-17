@@ -2,12 +2,15 @@ import { Collection } from "mongodb";
 import * as db from "../init/db";
 import { createHash } from "crypto";
 
-type BlocklistEntry = Pick<SharedTypes.User, "name" | "email" | "discordId">;
+type BlocklistEntryProperties = Pick<
+  SharedTypes.User,
+  "name" | "email" | "discordId"
+>;
 // Export for use in tests
 export const getCollection = (): Collection<MonkeyTypes.DBBlocklistEntry> =>
   db.collection("blocklist");
 
-export async function add(user: BlocklistEntry): Promise<void> {
+export async function add(user: BlocklistEntryProperties): Promise<void> {
   const timestamp = Date.now();
   const inserts: Promise<unknown>[] = [];
 
@@ -48,14 +51,16 @@ export async function add(user: BlocklistEntry): Promise<void> {
   await Promise.all(inserts);
 }
 
-export async function remove(user: Partial<BlocklistEntry>): Promise<void> {
+export async function remove(
+  user: Partial<BlocklistEntryProperties>
+): Promise<void> {
   const filter = getFilter(user);
   if (filter.length === 0) return;
   await getCollection().deleteMany({ $or: filter });
 }
 
 export async function contains(
-  user: Partial<BlocklistEntry>
+  user: Partial<BlocklistEntryProperties>
 ): Promise<boolean> {
   const filter = getFilter(user);
   if (filter.length === 0) return false;
@@ -71,7 +76,7 @@ export function hash(value: string): string {
 }
 
 function getFilter(
-  user: Partial<BlocklistEntry>
+  user: Partial<BlocklistEntryProperties>
 ): Partial<MonkeyTypes.DBBlocklistEntry>[] {
   const filter: Partial<MonkeyTypes.DBBlocklistEntry>[] = [];
   if (user.email !== undefined) {

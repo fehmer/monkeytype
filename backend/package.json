@@ -10,7 +10,7 @@
     "start": "npm run build && node ./build/server.js",
     "test": "vitest run",
     "test-coverage": "vitest run --coverage",
-    "dev": "ts-node-dev -r tsconfig-paths/register --transpile-only --inspect -- ./src/server.ts",
+    "dev": "ts-node-dev --transpile-only --inspect -- ./src/server.ts",
     "knip": "knip",
     "docker-db-only": "docker compose -f docker/compose.db-only.yml up",
     "docker": "docker compose -f docker/compose.yml up"
@@ -49,6 +49,7 @@
     "path": "0.12.7",
     "prom-client": "14.0.1",
     "rate-limiter-flexible": "2.3.7",
+    "shared": "file:../shared",
     "simple-git": "3.16.0",
     "string-similarity": "4.0.4",
     "swagger-stats": "0.99.5",

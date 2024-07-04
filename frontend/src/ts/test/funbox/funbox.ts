@@ -26,6 +26,7 @@ import {
 import { Wordset } from "../wordset";
 import * as LayoutfluidFunboxTimer from "./layoutfluid-funbox-timer";
 import * as DDR from "../../utils/ddr";
+import { hexColorFromString } from "../../utils/colors";
 
 const prefixSize = 2;
 
@@ -743,6 +744,15 @@ FunboxList.setFunboxFunctions("crt", {
     $("#scanline").remove();
     $("body").removeClass("crtmode");
     $("#globalFunBoxTheme").attr("href", ``);
+  },
+});
+
+FunboxList.setFunboxFunctions("color_highlight", {
+  getWordHtml(char, letterTag, word) {
+    const tag = letterTag
+      ? `<letter style="color:${hexColorFromString(word ?? "")}">`
+      : "";
+    return `${tag}${char}${tag}`;
   },
 });
 

@@ -317,7 +317,7 @@ function getWordHTML(word: string): string {
   );
   for (let c = 0; c < word.length; c++) {
     if (funbox?.functions?.getWordHtml) {
-      retval += funbox.functions.getWordHtml(word.charAt(c), true);
+      retval += funbox.functions.getWordHtml(word.charAt(c), true, word);
     } else if (word.charAt(c) === "\t") {
       retval += `<letter class='tabChar'><i class="fas fa-long-arrow-alt-right fa-fw"></i></letter>`;
     } else if (word.charAt(c) === "\n") {

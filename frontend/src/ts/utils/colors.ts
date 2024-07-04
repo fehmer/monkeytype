@@ -187,3 +187,24 @@ export function rgbStringtoHex(rgb: string): string | undefined {
     hexCode(match[3] as string)
   );
 }
+
+/**
+ * generate hex color from text string
+ * @param s string
+ * @returns hex color based on the input string
+ * source https://jsfiddle.net/8v6ys4x1/
+ */
+export function hexColorFromString(s: string): string {
+  if (s.length === 0) return "";
+  let hash = 0;
+  for (let i = 0; i < s.length; i++) {
+    hash = s.charCodeAt(i) + ((hash << 5) - hash);
+    hash = hash & hash;
+  }
+  let color = "#";
+  for (let i = 0; i < 3; i++) {
+    const value = (hash >> (i * 8)) & 255;
+    color += ("00" + value.toString(16)).substr(-2);
+  }
+  return color;
+}

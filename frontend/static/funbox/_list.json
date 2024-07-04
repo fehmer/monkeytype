@@ -19,9 +19,10 @@
     "info": "Everything is mirrored!",
     "canGetPb": true
   },
-  {"name": "upside_down",
-  "info": "Everything is upside down!",
-  "canGetPb": true
+  {
+    "name": "upside_down",
+    "info": "Everything is upside down!",
+    "canGetPb": true
   },
   {
     "name": "tts",
@@ -189,6 +190,11 @@
   {
     "name": "ddoouubblleedd",
     "info": "TTyyppee eevveerryytthhiinngg ttwwiiccee..",
+    "canGetPb": true
+  },
+  {
+    "name": "color_highlight",
+    "info": "I can smell colors.",
     "canGetPb": true
   }
 ]

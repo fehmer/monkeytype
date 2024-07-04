@@ -151,7 +151,7 @@ declare namespace MonkeyTypes {
     getResultContent?: () => string;
     start?: () => void;
     restart?: () => void;
-    getWordHtml?: (char: string, letterTag?: boolean) => string;
+    getWordHtml?: (char: string, letterTag?: boolean, word?: string) => string;
     getWordsFrequencyMode?: () => FunboxWordsFrequency;
   };
 

@@ -265,6 +265,10 @@ const list: MonkeyTypes.FunboxMetadata[] = [
     info: "TTyyppee eevveerryytthhiinngg ttwwiiccee..",
     properties: ["noLigatures"],
   },
+  {
+    name: "color_highlight",
+    info: "I can smell colors.",
+  },
 ];
 
 export function getAll(): MonkeyTypes.FunboxMetadata[] {

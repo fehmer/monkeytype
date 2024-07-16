@@ -28,11 +28,11 @@ const ONE_MINUTE_IN_MILLISECONDS = 1000 * 60;
 const ONE_DAY_IN_MILLISECONDS = 1000 * 60 * 60 * 24;
 
 class LaterQueue extends MonkeyQueue<LaterTask<LaterTaskType>> {
-  private scheduledJobCache = new LRUCache<string, boolean>({
+  scheduledJobCache = new LRUCache<string, boolean>({
     max: 100,
   });
 
-  private async scheduleTask(
+  async scheduleTask(
     taskName: string,
     task: LaterTask<LaterTaskType>,
     jobId: string,

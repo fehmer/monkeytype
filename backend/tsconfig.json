@@ -1,5 +1,8 @@
 {
+  "extends": "../tsconfig.options.json",
   "compilerOptions": {
+    "noEmit": true,
+    "emitDeclarationOnly": false,
     "incremental": true,
     "module": "commonjs",
     "target": "es6",
@@ -23,7 +26,8 @@
     "files": true
   },
   "files": ["./src/types/types.d.ts"],
-  "include": ["./src/**/*", "../shared/**/*.d.ts"],
+  "references": [{ "path": "../shared/" }],
+  "include": ["./src/**/*", "../shared/**/*", "./src/documentation/*.json"],
   "exclude": [
     "node_modules",
     "build",

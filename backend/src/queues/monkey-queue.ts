@@ -9,10 +9,10 @@ import {
 } from "bullmq";
 
 export class MonkeyQueue<T> {
-  private jobQueue: Queue | undefined;
-  private _queueScheduler: QueueScheduler;
+  jobQueue: Queue | undefined;
+  _queueScheduler: QueueScheduler;
   public readonly queueName: string;
-  private queueOpts: QueueOptions;
+  queueOpts: QueueOptions;
 
   constructor(queueName: string, queueOpts: QueueOptions) {
     this.queueName = queueName;

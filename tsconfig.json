@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.options.json",
+  "files": [],
+  "references": [
+    { "path": "shared" },
+    { "path": "frontend" },
+    { "path": "backend" }
+  ],
+  "include": ["../shared/**/*"]
+}

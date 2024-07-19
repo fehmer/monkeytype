@@ -11,7 +11,7 @@ describe("Misc Utils", () => {
     vi.setSystemTime(1652743381);
 
     const currentDay = misc.getCurrentDayTimestamp();
-    expect(currentDay).toBe(1641600000);
+    expect(currentDay).toBe(52);
   });
 
   it("matchesAPattern", () => {

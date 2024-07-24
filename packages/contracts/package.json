@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "rimraf ./dist && tsc --watch ",
-    "build": "rimraf ./dist && tsc",
+    "build": "rimraf ./dist && tsc -p tsconfig.cjs.json && tsc -p tsconfig.mjs.json && ./fixup.sh",
     "ts-check": "tsc --noEmit",
     "lint": "eslint \"./**/*.ts\""
   },
@@ -18,14 +18,18 @@
     "typescript": "5.5.3",
     "eslint": "8.57.0"
   },
+  "main": "dist/cjs/index.js",
+  "module": "dist/mjs/index.js",
   "exports": {
     ".": {
-      "default": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/cjs/index.d.ts",
+      "import": "./dist/mjs/index.js",
+      "require": "./dist/cjs/index.js"
     },
     "./*": {
-      "default": "./dist/*.js",
-      "types": "./dist/*.d.ts"
+      "types": "./dist/*.d.ts",
+      "import": "./dist/mjs/*.js",
+      "require": "./dist/cjs/*.js"
     }
   }
 }

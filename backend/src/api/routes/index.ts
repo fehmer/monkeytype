@@ -77,7 +77,7 @@ export function addApiRoutes(app: Application): void {
 function applyTsRestApiRoutes(app: IRouter): void {
   createExpressEndpoints(contract, router, app, {
     jsonQuery: true,
-    requestValidationErrorHandler(err, _req, res, next) {
+    requestValidationErrorHandler(err, _req, res, _next) {
       let message: string | undefined = undefined;
       let validationErrors: string[] | undefined = undefined;
 
@@ -90,16 +90,19 @@ function applyTsRestApiRoutes(app: IRouter): void {
       } else if (err.body?.issues !== undefined) {
         message = "Invalid request data schema";
         validationErrors = err.body.issues.map(prettyErrorMessage);
-      }
-
-      if (message !== undefined) {
-        res
-          .status(422)
-          .json({ message, validationErrors } as MonkeyValidationError);
       } else {
-        next();
+        Logger.error(
+          `Unknown validation error for ${_req.path}: ${JSON.stringify(err)}`
+        );
+        res
+          .status(500)
+          .json({ message: "Unknown validation error. Contact support." });
         return;
       }
+
+      res
+        .status(422)
+        .json({ message, validationErrors } as MonkeyValidationError);
     },
     globalMiddleware: [authenticateTsRestRequest()],
   });

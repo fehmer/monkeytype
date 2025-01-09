@@ -96,6 +96,11 @@
   .r4 {
     display: grid;
     grid-template-columns: 0.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 2.75fr;
+
+    #shiftKey {
+      width: 4rem;
+      visibility: hidden;
+    }
   }
 
   .r5 {

@@ -41,8 +41,19 @@ function highlightKey(currentKey: string): void {
     }
 
     // console.log("highlighting", highlightKey);
+    const $highlightKey = $(highlightKey);
+    $highlightKey.addClass("activeKey");
 
-    $(highlightKey).addClass("activeKey");
+    if (Config.funbox.includes("simon_says")) {
+      const shift =
+        ($highlightKey.attr("data-key") ?? "").indexOf(currentKey) >= 1;
+
+      if (shift) {
+        $("#shiftKey").addClass("activeKey");
+      } else {
+        $("#shiftKey").removeClass("activeKey");
+      }
+    }
   } catch (e) {
     if (e instanceof Error) {
       console.log("could not update highlighted keymap key: " + e.message);
@@ -169,7 +180,7 @@ export async function refresh(
 
     let keymapElement = "";
 
-    // ( as (keyof MonkeyTypes.Keys)[]).forEach(
+    // ( as (keyof MonkeyTypes.Keys)[]).forEach(V
     //   (row, index) => {
 
     const rowIds = Object.keys(lts.keys);
@@ -315,7 +326,6 @@ export async function refresh(
           ) {
             hide = ` invisible`;
           }
-
           const keyElement = `<div class="keymapKey${hide}" data-key="${key.replace(
             '"',
             "&quot;"
@@ -381,6 +391,11 @@ export async function refresh(
       }
     }
     // );
+
+    //TODO: find a good place for the shift key
+    if (Config.funbox.includes("simon_says")) {
+      keymapElement += `<div class="keymapKey" id="shiftKey" style="width: 5rem"><span class="letter">Shift</span></div>`;
+    }
 
     $("#keymap").html(keymapElement);
 

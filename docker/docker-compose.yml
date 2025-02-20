@@ -10,6 +10,8 @@ services:
     depends_on:
       monkeytype-backend:
         condition: service_healthy
+      monkeytype-firebase:
+        condition: service_healthy
     env_file:
       - path: ./.env
         required: true
@@ -50,6 +52,8 @@ services:
         condition: service_healthy
       monkeytype-mongodb:
         condition: service_healthy
+      monkeytype-firebase:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "nc", "-z", "-v", "localhost", "5005"]
       interval: 5s
@@ -88,6 +92,30 @@ services:
       timeout: 10s
       retries: 15
       start_period: 10s
+
+  ## uncomment if you want to use local firebase emulator. It is recommended to use a real firebase if you want to host this for others
+  monkeytype-firebase:
+    container_name: monkeytype-firebase
+    image: andreysenov/firebase-tools
+    ports:
+      - "${FIREBASE_AUTH_PORT:-9099}:9099"
+      - "${FIREBASE_UI_PORT:-4000}:4000"
+    command: 'firebase emulators:start --project local-project --import /home/node/data/firebase-emulator-data --export-on-exit'
+    restart: on-failure
+    volumes:
+      - type: bind
+        source: ./firebase.json
+        target: /home/node/firebase.json
+        read_only: true
+      - type: bind
+        source: ./docker-data
+        target: /home/node/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:9099', res => process.exit(res.statusCode === 200 ? 0 : 1))", "> /dev/null 2>&1"]
+      interval: 5s
+      timeout: 10s
+      retries: 15
+      start_period: 5s
 
 volumes:
   mongo-data:

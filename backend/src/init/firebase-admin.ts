@@ -11,6 +11,18 @@ const SERVICE_ACCOUNT_PATH = path.join(
 );
 
 export function init(): void {
+  const firebaseAuthEmulatorHost = process.env["FIREBASE_AUTH_EMULATOR_HOST"];
+  if (
+    firebaseAuthEmulatorHost !== undefined &&
+    firebaseAuthEmulatorHost !== null &&
+    firebaseAuthEmulatorHost !== ""
+  ) {
+    Logger.warning(
+      `Using firebase emulator on host ` + firebaseAuthEmulatorHost
+    );
+    admin.initializeApp({ projectId: "local-project" });
+    return;
+  }
   if (!existsSync(SERVICE_ACCOUNT_PATH)) {
     if (isDevEnvironment()) {
       Logger.warning(

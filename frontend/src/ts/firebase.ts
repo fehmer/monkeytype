@@ -1,6 +1,11 @@
 // Import the functions you need from the SDKs you need
 import { FirebaseApp, initializeApp } from "firebase/app";
-import { getAuth, Auth as AuthType, User } from "firebase/auth";
+import {
+  getAuth,
+  Auth as AuthType,
+  User,
+  connectAuthEmulator,
+} from "firebase/auth";
 // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
 //@ts-ignore
 // eslint-disable-next-line import/no-unresolved
@@ -26,8 +31,24 @@ export function getAuthenticatedUser(): User {
 }
 
 try {
-  app = initializeApp(firebaseConfig);
-  Auth = getAuth(app);
+  // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+  const firebaseAuthEmulatorHost: string = (firebaseConfig as any)[
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,
+    "firebaseAuthEmulatorHost"
+  ] as string;
+  console.log("### emulated", { firebaseAuthEmulatorHost, firebaseConfig });
+  if (firebaseAuthEmulatorHost !== undefined) {
+    console.log("### emulated", { firebaseAuthEmulatorHost });
+    initializeApp({
+      projectId: "local-project",
+      apiKey: "xxxxx",
+    });
+    const auth = getAuth();
+    connectAuthEmulator(auth, firebaseAuthEmulatorHost);
+  } else {
+    app = initializeApp(firebaseConfig);
+    Auth = getAuth(app);
+  }
 } catch (e) {
   app = undefined;
   Auth = undefined;

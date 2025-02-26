@@ -34,6 +34,7 @@ import {
   safeParse as parseUrlSearchParams,
   serialize as serializeUrlSearchParams,
 } from "zod-urlsearchparams";
+import { LanguageSchema } from "@monkeytype/contracts/schemas/util";
 // import * as ServerConfiguration from "../ape/server-configuration";
 
 const LeaderboardTypeSchema = z.enum(["allTime", "weekly", "daily"]);
@@ -97,7 +98,7 @@ const state = {
 const SelectorSchema = z.object({
   type: LeaderboardTypeSchema,
   mode2: z.enum(["15", "60"]).optional(),
-  language: z.string().optional(),
+  language: LanguageSchema.optional(),
   yesterday: z.boolean().optional(),
   lastWeek: z.boolean().optional(),
 });
@@ -1182,6 +1183,12 @@ function readGetParameters(): void {
     schema: UrlParameterSchema,
     input: urlParams,
   });
+
+  console.log("###", {
+    success: parsed.success,
+    language: parsed.data?.language,
+  });
+
   if (!parsed.success) {
     return;
   }

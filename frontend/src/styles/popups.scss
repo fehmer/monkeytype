@@ -48,6 +48,15 @@
       grid-auto-flow: row;
     }
 
+    .inputs.withTopLabel {
+      label {
+        color: var(--sub-color);
+        margin-bottom: 0.25em;
+        margin-top: 1em;
+        display: block;
+      }
+    }
+
     .inputs {
       div:has(> input[type="range"]) {
         display: grid;

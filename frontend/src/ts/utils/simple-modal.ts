@@ -93,6 +93,8 @@ type FormInput = CommonInputType & {
   indicator?: InputIndicator;
   currentValue: () => string;
 };
+
+type LabelPosition = "off" | "inline" | "top";
 type SimpleModalOptions = {
   id: string;
   title: string;
@@ -106,7 +108,7 @@ type SimpleModalOptions = {
   canClose?: boolean;
   onlineOnly?: boolean;
   hideCallsExec?: boolean;
-  showLabels?: boolean;
+  showLabels?: LabelPosition;
 };
 
 export class SimpleModal {
@@ -126,7 +128,7 @@ export class SimpleModal {
   canClose: boolean;
   onlineOnly: boolean;
   hideCallsExec: boolean;
-  showLabels: boolean;
+  showLabels: LabelPosition;
   constructor(options: SimpleModalOptions) {
     this.parameters = [];
     this.id = options.id;
@@ -144,7 +146,7 @@ export class SimpleModal {
     this.canClose = options.canClose ?? true;
     this.onlineOnly = options.onlineOnly ?? false;
     this.hideCallsExec = options.hideCallsExec ?? false;
-    this.showLabels = options.showLabels ?? false;
+    this.showLabels = options.showLabels ?? "off";
   }
   reset(): void {
     this.element.innerHTML = `
@@ -193,13 +195,20 @@ export class SimpleModal {
     }
 
     const inputs = el.find(".inputs");
-    if (this.showLabels) inputs.addClass("withLabel");
+    if (this.showLabels === "inline") inputs.addClass("withLabel");
+    if (this.showLabels === "top") inputs.addClass("withTopLabel");
 
     this.inputs.forEach((input, index) => {
       const id = `${this.id}_${index}`;
 
-      if (this.showLabels && !input.hidden) {
-        inputs.append(`<label for="${id}">${input.label ?? ""}</label>`);
+      if (!input.hidden) {
+        if (this.showLabels === "inline") {
+          inputs.append(`<label for="${id}">${input.label ?? ""}</label>`);
+        } else if (this.showLabels === "top") {
+          inputs.append(
+            `<div><label for="${id}">${input.label ?? ""}</label></div>`
+          );
+        }
       }
 
       const tagname = input.type === "textarea" ? "textarea" : "input";
@@ -236,7 +245,7 @@ export class SimpleModal {
         if (input.description !== undefined) {
           html += `<span>${input.description}</span>`;
         }
-        if (!this.showLabels) {
+        if (this.showLabels !== "inline") {
           html = `
           <label class="checkbox">
             ${html}

@@ -87,27 +87,36 @@ function profileDetailsBase(
     .transform((value) => (value === null ? undefined : value));
 }
 
+export const ProfileBioSchema = profileDetailsBase(z.string().max(250)).or(
+  z.literal("")
+);
+export const ProfileKeyboardSchema = profileDetailsBase(z.string().max(75)).or(
+  z.literal("")
+);
+export const ProfileTwitterSchema = profileDetailsBase(
+  z
+    .string()
+    .max(20)
+    .regex(/^[0-9a-zA-Z_.-]+$/)
+).or(z.literal(""));
+export const ProfileGithubSchema = profileDetailsBase(
+  z
+    .string()
+    .max(39)
+    .regex(/^[0-9a-zA-Z_.-]+$/)
+).or(z.literal(""));
+export const ProfileWebsiteSchema = profileDetailsBase(
+  z.string().url().max(200).startsWith("https://")
+).or(z.literal(""));
 export const UserProfileDetailsSchema = z
   .object({
-    bio: profileDetailsBase(z.string().max(250)).or(z.literal("")),
-    keyboard: profileDetailsBase(z.string().max(75)).or(z.literal("")),
+    bio: ProfileBioSchema,
+    keyboard: ProfileKeyboardSchema,
     socialProfiles: z
       .object({
-        twitter: profileDetailsBase(
-          z
-            .string()
-            .max(20)
-            .regex(/^[0-9a-zA-Z_.-]+$/)
-        ).or(z.literal("")),
-        github: profileDetailsBase(
-          z
-            .string()
-            .max(39)
-            .regex(/^[0-9a-zA-Z_.-]+$/)
-        ).or(z.literal("")),
-        website: profileDetailsBase(
-          z.string().url().max(200).startsWith("https://")
-        ).or(z.literal("")),
+        twitter: ProfileTwitterSchema,
+        github: ProfileGithubSchema,
+        website: ProfileWebsiteSchema,
       })
       .strict()
       .optional(),

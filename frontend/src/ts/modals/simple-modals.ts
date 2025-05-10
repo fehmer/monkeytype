@@ -37,6 +37,13 @@ import { ShowOptions } from "../utils/animated-modal";
 import { GenerateDataRequest } from "@monkeytype/contracts/dev";
 import { UserEmailSchema, UserNameSchema } from "@monkeytype/contracts/users";
 import { goToPage } from "../pages/leaderboards";
+import {
+  ProfileBioSchema,
+  ProfileGithubSchema,
+  ProfileKeyboardSchema,
+  ProfileTwitterSchema,
+  ProfileWebsiteSchema,
+} from "@monkeytype/contracts/schemas/users";
 
 type PopupKey =
   | "updateEmail"
@@ -61,7 +68,8 @@ type PopupKey =
   | "updateCustomTheme"
   | "deleteCustomTheme"
   | "devGenerateData"
-  | "lbGoToPage";
+  | "lbGoToPage"
+  | "editProfile";
 
 const list: Record<PopupKey, SimpleModal | undefined> = {
   updateEmail: undefined,
@@ -87,6 +95,7 @@ const list: Record<PopupKey, SimpleModal | undefined> = {
   deleteCustomTheme: undefined,
   devGenerateData: undefined,
   lbGoToPage: undefined,
+  editProfile: undefined,
 };
 
 type AuthMethod = "password" | "github.com" | "google.com";
@@ -1190,7 +1199,7 @@ list.deleteCustomTheme = new SimpleModal({
 list.devGenerateData = new SimpleModal({
   id: "devGenerateData",
   title: "Generate data",
-  showLabels: true,
+  showLabels: "inline",
   inputs: [
     {
       type: "text",
@@ -1304,6 +1313,95 @@ list.lbGoToPage = new SimpleModal({
       message: "Navigating to page " + page,
       showNotification: false,
     };
+  },
+});
+
+list.editProfile = new SimpleModal({
+  id: "updateEmail",
+  title: "Edit Profile",
+  inputs: [
+    {
+      placeholder: "",
+      type: "textarea",
+      initVal: "",
+      validation: { schema: ProfileBioSchema as Zod.Schema<string> },
+    },
+    {
+      placeholder: "",
+      type: "textarea",
+      initVal: "",
+      validation: { schema: ProfileKeyboardSchema as Zod.Schema<string> },
+    },
+    {
+      placeholder: "",
+      type: "text",
+      initVal: "",
+      validation: { schema: ProfileGithubSchema as Zod.Schema<string> },
+    },
+    {
+      placeholder: "",
+      type: "text",
+      initVal: "",
+      validation: { schema: ProfileTwitterSchema as Zod.Schema<string> },
+    },
+    {
+      placeholder: "",
+      type: "text",
+      initVal: "",
+      validation: { schema: ProfileWebsiteSchema as Zod.Schema<string> },
+    },
+  ],
+  buttonText: "update",
+  onlineOnly: true,
+  execFn: async (
+    _thisPopup,
+    password,
+    email,
+    emailConfirm
+  ): Promise<ExecReturn> => {
+    if (email !== emailConfirm) {
+      return {
+        status: 0,
+        message: "Emails don't match",
+      };
+    }
+
+    const reauth = await reauthenticate({ password });
+    if (reauth.status !== 1) {
+      return {
+        status: reauth.status,
+        message: reauth.message,
+      };
+    }
+
+    const response = await Ape.users.updateEmail({
+      body: {
+        newEmail: email,
+        previousEmail: reauth.user.email as string,
+      },
+    });
+
+    if (response.status !== 200) {
+      return {
+        status: -1,
+        message: "Failed to update email: " + response.body.message,
+      };
+    }
+
+    AccountController.signOut();
+
+    return {
+      status: 1,
+      message: "Email updated",
+    };
+  },
+  beforeInitFn: (thisPopup): void => {
+    if (!isAuthenticated()) return;
+    if (!isUsingPasswordAuthentication()) {
+      thisPopup.inputs = [];
+      thisPopup.buttonText = "";
+      thisPopup.text = "Password authentication is not enabled";
+    }
   },
 });
 

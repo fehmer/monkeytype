@@ -62,7 +62,7 @@ function spellcheck(): void {
     console.log(`### File  ${language} has ${errors.length} errors.`);
 
     if (verbose) {
-      console.log(`|line|word|suggestion|\n|----|----|----|`);
+      console.log(`\n|line|word|suggestion|\n|----|----|----|`);
       for (const { index, suggestions } of errors) {
         console.log(`|${index + 1}| ${words[index]} | ${suggestions} |`);
       }

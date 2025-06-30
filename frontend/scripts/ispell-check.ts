@@ -22,6 +22,13 @@ const ignore = new Set([
 function spellcheck(): void {
   const verbose = true;
 
+  try {
+    fs.mkdirSync("/tmp/spellcheck");
+  } catch (err) {}
+  try {
+    fs.mkdirSync("/tmp/spellcheck-errors");
+  } catch (err) {}
+
   const srcFiles = fs
     .readdirSync(srcDir)
     .map((it) => it.substring(0, it.length - ".json".length));
@@ -29,14 +36,14 @@ function spellcheck(): void {
   for (const language of srcFiles) {
     const languageFile = `/tmp/spellcheck/${language}`;
 
-    const check = (): Error[] => {
+    const _check = (): Error[] => {
       return hunspell("de_DE", languageFile);
     };
 
-    const check2 = (): Error[] => {
+    const check = (): Error[] => {
       return ispell(languageFile);
     };
-    if (!language.includes("german")) continue;
+    if (!language.endsWith("english_10k")) continue;
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const original: { words: string[] } = JSON.parse(

@@ -23,11 +23,14 @@ function spellcheck(): void {
   const verbose = true;
 
   try {
-    fs.mkdirSync("/tmp/spellcheck");
-  } catch (err) {}
+    fs.rmSync("/tmp/spellcheck", { recursive: true });
+  } catch {}
+  fs.mkdirSync("/tmp/spellcheck");
+
   try {
-    fs.mkdirSync("/tmp/spellcheck-errors");
-  } catch (err) {}
+    fs.rmSync("/tmp/spellcheck-errors", { recursive: true });
+  } catch {}
+  fs.mkdirSync("/tmp/spellcheck-errors");
 
   const srcFiles = fs
     .readdirSync(srcDir)
@@ -43,7 +46,7 @@ function spellcheck(): void {
     const check = (): Error[] => {
       return ispell(languageFile);
     };
-    if (!language.endsWith("english_10k")) continue;
+    if (!language.includes("english")) continue;
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const original: { words: string[] } = JSON.parse(
@@ -71,7 +74,7 @@ function spellcheck(): void {
     fs.writeFileSync(
       `/tmp/spellcheck-errors/${language}_errors.csv`,
       errors
-        .map((it) => `${it.index + 1};${words[it.index]}:${it.suggestions}`)
+        .map((it) => `${it.index + 1};${words[it.index]};${it.suggestions}`)
         .join("\n")
     );
 

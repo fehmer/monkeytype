@@ -38,3 +38,23 @@ export function dispatch(
     }
   });
 }
+
+type ConfigSubset<K extends readonly (keyof Config)[]> = {
+  [P in K[number]]: Config[P];
+};
+
+export function subscribeConfig<K extends readonly (keyof Config)[]>(
+  ...keys: K
+): ConfigSubset<K> {
+  const result = {} as ConfigSubset<K>;
+
+  subscribe((configKey, newValue) => {
+    //@ts-expect-error this is fine
+    if (keys.includes(configKey)) {
+      //@ts-expect-error this is fine
+      result[configKey] = newValue;
+    }
+  });
+
+  return result;
+}

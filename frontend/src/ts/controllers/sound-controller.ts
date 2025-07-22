@@ -1,4 +1,3 @@
-import Config from "../config";
 import * as ConfigEvent from "../observables/config-event";
 import { createErrorMessage } from "../utils/misc";
 import { randomElementFromArray } from "../utils/arrays";
@@ -34,6 +33,12 @@ let errorSounds: ErrorSounds | null = null;
 let clickSounds: ClickSounds | null = null;
 
 let timeWarning: Howl | null = null;
+
+let Config = ConfigEvent.subscribeConfig(
+  "soundVolume",
+  "playSoundOnClick",
+  "playSoundOnError"
+);
 
 async function initTimeWarning(): Promise<void> {
   const Howl = (await gethowler()).Howl;
@@ -91,6 +96,7 @@ async function initErrorSound(): Promise<void> {
       },
     ],
   };
+
   Howler.volume(Config.soundVolume);
 }
 

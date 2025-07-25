@@ -14,7 +14,7 @@ let isPreviewingFont = false;
 export function previewFontFamily(font: string): void {
   document.documentElement.style.setProperty(
     "--font",
-    '"' + font.replace(/_/g, " ") + '", "Roboto Mono", "Vazirmatn"'
+    '"' + font + '", "Roboto Mono", "Vazirmatn"'
   );
   void TestUI.updateHintsPositionDebounced();
   isPreviewingFont = true;

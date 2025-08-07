@@ -8,7 +8,7 @@ import {
   type Options,
 } from "express-rate-limit";
 import { isDevEnvironment } from "../utils/misc";
-import { TsRestRequestHandler } from "@ts-rest/express";
+import { TsRestRequestHandler } from "@ts-rest/fastify";
 import {
   limits,
   RateLimiterId,
@@ -23,7 +23,7 @@ import {
 } from "../api/types";
 import { AppRoute, AppRouter } from "@ts-rest/core";
 
-export const REQUEST_MULTIPLIER = isDevEnvironment() ? 100 : 1;
+export const REQUEST_MULTIPLIER = isDevEnvironment() ? 100_000 : 1;
 
 export const customHandler = (
   req: ExpressRequestWithContext,

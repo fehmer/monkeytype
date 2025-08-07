@@ -1,5 +1,5 @@
 import { usersContract } from "@monkeytype/contracts/users";
-import { initServer } from "@ts-rest/express";
+import { initServer } from "@ts-rest/fastify";
 import * as UserController from "../controllers/user";
 import { callController } from "../ts-rest-adapter";
 

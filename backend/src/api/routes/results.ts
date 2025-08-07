@@ -1,5 +1,5 @@
 import { resultsContract } from "@monkeytype/contracts/results";
-import { initServer } from "@ts-rest/express";
+import { initServer } from "@ts-rest/fastify";
 import * as ResultController from "../controllers/result";
 import { callController } from "../ts-rest-adapter";
 

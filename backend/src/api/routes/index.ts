@@ -18,18 +18,11 @@ import { version } from "../../version";
 import leaderboards from "./leaderboards";
 import addSwaggerMiddlewares from "./swagger";
 import { MonkeyResponse } from "../../utils/monkey-response";
-import {
-  Application,
-  IRouter,
-  NextFunction,
-  Response,
-  Router,
-  static as expressStatic,
-} from "express";
+
 import { isDevEnvironment } from "../../utils/misc";
 import { getLiveConfiguration } from "../../init/configuration";
 import Logger from "../../utils/logger";
-import { createExpressEndpoints, initServer } from "@ts-rest/express";
+import { initServer } from "@ts-rest/fastify";
 import { ZodIssue } from "zod";
 import { MonkeyValidationError } from "@monkeytype/contracts/util/api";
 import { authenticateTsRestRequest } from "../../middlewares/auth";
@@ -37,6 +30,7 @@ import { rateLimitRequest } from "../../middlewares/rate-limit";
 import { verifyPermissions } from "../../middlewares/permission";
 import { verifyRequiredConfiguration } from "../../middlewares/configuration";
 import { ExpressRequestWithContext } from "../types";
+import { FastifyInstance } from "fastify";
 
 const pathOverride = process.env["API_PATH_OVERRIDE"];
 const BASE_ROUTE = pathOverride !== undefined ? `/${pathOverride}` : "";
@@ -48,7 +42,7 @@ const API_ROUTE_MAP = {
 
 const s = initServer();
 const router = s.router(contract, {
-  admin,
+  /*admin,
   apeKeys,
   configs,
   presets,
@@ -61,13 +55,17 @@ const router = s.router(contract, {
   users,
   quotes,
   webhooks,
+ */
+  leaderboards,
 });
 
-export function addApiRoutes(app: Application): void {
-  applyDevApiRoutes(app);
-  applyApiRoutes(app);
+export function addApiRoutes(app: FastifyInstance): void {
+  // applyDevApiRoutes(app);
+  //applyApiRoutes(app);
   applyTsRestApiRoutes(app);
+  //app.register(s.plugin(router));
 
+  /*
   app.use((req, res) => {
     res
       .status(404)
@@ -77,12 +75,16 @@ export function addApiRoutes(app: Application): void {
           null
         )
       );
+
   });
+  
+*/
 }
 
-function applyTsRestApiRoutes(app: IRouter): void {
-  createExpressEndpoints(contract, router, app, {
+function applyTsRestApiRoutes(app: FastifyInstance): void {
+  s.registerRouter(contract, router, app, {
     jsonQuery: true,
+    /*
     requestValidationErrorHandler(err, req, res, _next) {
       let message: string | undefined = undefined;
       let validationErrors: string[] | undefined = undefined;
@@ -114,15 +116,17 @@ function applyTsRestApiRoutes(app: IRouter): void {
       res
         .status(422)
         .json({ message, validationErrors } as MonkeyValidationError);
-    },
-    globalMiddleware: [
+    },*/
+    /*globalMiddleware: [
       authenticateTsRestRequest(),
       rateLimitRequest(),
       verifyRequiredConfiguration(),
       verifyPermissions(),
-    ],
+    ],*/
   });
 }
+
+/*
 
 function prettyErrorMessage(issue: ZodIssue | undefined): string {
   if (issue === undefined) return "";
@@ -193,3 +197,4 @@ function applyApiRoutes(app: Application): void {
     app.use(apiRoute, router);
   });
 }
+*/

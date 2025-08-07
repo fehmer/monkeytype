@@ -1,5 +1,5 @@
 import { apeKeysContract } from "@monkeytype/contracts/ape-keys";
-import { initServer } from "@ts-rest/express";
+import { initServer } from "@ts-rest/fastify";
 import * as ApeKeyController from "../controllers/ape-key";
 import { callController } from "../ts-rest-adapter";
 

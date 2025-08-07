@@ -2,7 +2,7 @@
 
 import * as AdminController from "../controllers/admin";
 import { adminContract } from "@monkeytype/contracts/admin";
-import { initServer } from "@ts-rest/express";
+import { initServer } from "@ts-rest/fastify";
 import { callController } from "../ts-rest-adapter";
 
 const s = initServer();

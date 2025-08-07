@@ -12,7 +12,7 @@ import {
 } from "../utils/prometheus";
 import crypto from "crypto";
 import { performance } from "perf_hooks";
-import { TsRestRequestHandler } from "@ts-rest/express";
+import { TsRestRequestHandler } from "@ts-rest/fastify";
 import { AppRoute, AppRouter } from "@ts-rest/core";
 import {
   EndpointMetadata,

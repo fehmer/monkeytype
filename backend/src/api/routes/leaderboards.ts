@@ -1,4 +1,4 @@
-import { initServer } from "@ts-rest/express";
+import { initServer } from "@ts-rest/fastify";
 import * as LeaderboardController from "../controllers/leaderboard";
 import { leaderboardsContract } from "@monkeytype/contracts/leaderboards";
 import { callController } from "../ts-rest-adapter";

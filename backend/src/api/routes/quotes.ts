@@ -1,5 +1,5 @@
 import { quotesContract } from "@monkeytype/contracts/quotes";
-import { initServer } from "@ts-rest/express";
+import { initServer } from "@ts-rest/fastify";
 import * as QuoteController from "../controllers/quote";
 import { callController } from "../ts-rest-adapter";
 

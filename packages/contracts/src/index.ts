@@ -16,6 +16,7 @@ import { webhooksContract } from "./webhooks";
 const c = initContract();
 
 export const contract = c.router({
+  /*
   admin: adminContract,
   apeKeys: apeKeysContract,
   configs: configsContract,
@@ -28,7 +29,8 @@ export const contract = c.router({
   dev: devContract,
   users: usersContract,
   quotes: quotesContract,
-  webhooks: webhooksContract,
+  webhooks: webhooksContract,*/
+  leaderboards: leaderboardsContract,
 });
 
 /**

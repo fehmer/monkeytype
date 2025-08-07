@@ -1,5 +1,5 @@
 import type { Response, NextFunction } from "express";
-import { TsRestRequestHandler } from "@ts-rest/express";
+import { TsRestRequestHandler } from "@ts-rest/fastify";
 import { EndpointMetadata } from "@monkeytype/contracts/util/api";
 import MonkeyError from "../utils/error";
 import { Configuration } from "@monkeytype/schemas/configuration";

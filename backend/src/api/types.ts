@@ -1,4 +1,4 @@
-import { TsRestRequest as TsRestRequestGeneric } from "@ts-rest/express";
+import { TsRestRequest as TsRestRequestGeneric } from "@ts-rest/fastify";
 import { Request as ExpressRequest } from "express";
 import { Context } from "../middlewares/context";
 

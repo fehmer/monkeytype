@@ -1,7 +1,7 @@
 import cors from "cors";
 import helmet from "helmet";
 import { addApiRoutes } from "./api/routes";
-import express, { urlencoded, json } from "express";
+import Fastify, { FastifyInstance } from "fastify";
 import contextMiddleware from "./middlewares/context";
 import errorHandlingMiddleware from "./middlewares/error";
 import {
@@ -15,9 +15,10 @@ import { v4RequestBody } from "./middlewares/utility";
 
 const etagFn = createETagGenerator({ weak: true });
 
-function buildApp(): express.Application {
-  const app = express();
+function buildApp(): FastifyInstance {
+  const app = Fastify();
 
+  /*
   app.use(urlencoded({ extended: true }));
   app.use(json());
   app.use(cors({ exposedHeaders: [COMPATIBILITY_CHECK_HEADER] }));
@@ -34,9 +35,14 @@ function buildApp(): express.Application {
 
   app.set("etag", etagFn);
 
-  addApiRoutes(app);
+  
 
   app.use(errorHandlingMiddleware);
+
+*/
+  addApiRoutes(app);
+
+  app.register(contextMiddleware);
 
   return app;
 }

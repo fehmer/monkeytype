@@ -1,5 +1,4 @@
 import { AppRoute, AppRouter } from "@ts-rest/core";
-import { TsRestRequest } from "@ts-rest/express";
 import { MonkeyResponse } from "../utils/monkey-response";
 import { Context } from "../middlewares/context";
 import { MonkeyRequest } from "./types";
@@ -24,8 +23,8 @@ export function callController<
       body: all.body as TBody,
       query: all.query as TQuery,
       params: all.params as TParams,
-      raw: all.req,
-      ctx: all.req["ctx"] as Context,
+      raw: all.request,
+      ctx: all.request["ctx"] as Context,
     };
 
     const result = await handler(req);

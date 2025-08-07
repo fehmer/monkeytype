@@ -1,12 +1,8 @@
+import fp from "fastify-plugin";
 import { getCachedConfiguration } from "../init/configuration";
-import type {
-  Response,
-  NextFunction,
-  Request as ExpressRequest,
-} from "express";
 import { DecodedToken } from "./auth";
 import { Configuration } from "@monkeytype/schemas/configuration";
-import { ExpressRequestWithContext } from "../api/types";
+import { FastifyInstance } from "fastify";
 
 export type Context = {
   configuration: Configuration;
@@ -19,23 +15,21 @@ export type Context = {
  * @param _res
  * @param next
  */
-async function contextMiddleware(
-  req: ExpressRequest,
-  _res: Response,
-  next: NextFunction
-): Promise<void> {
-  const configuration = await getCachedConfiguration(true);
 
-  (req as ExpressRequestWithContext).ctx = {
-    configuration,
-    decodedToken: {
-      type: "None",
-      uid: "",
-      email: "",
-    },
-  };
+async function contextMiddleware(fastify: FastifyInstance): Promise<void> {
+  fastify.decorateRequest("ctx", null);
 
-  next();
+  fastify.addHook("onRequest", async (req, _res) => {
+    const configuration = await getCachedConfiguration(true);
+
+    req["ctx"] = {
+      configuration,
+      decodedToken: {
+        type: "None",
+        uid: "",
+        email: "",
+      },
+    };
+  });
 }
-
-export default contextMiddleware;
+export default fp(contextMiddleware);

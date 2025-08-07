@@ -1,5 +1,5 @@
 import { presetsContract } from "@monkeytype/contracts/presets";
-import { initServer } from "@ts-rest/express";
+import { initServer } from "@ts-rest/fastify";
 import * as PresetController from "../controllers/preset";
 import { callController } from "../ts-rest-adapter";
 

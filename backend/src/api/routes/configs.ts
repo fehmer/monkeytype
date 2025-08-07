@@ -1,5 +1,5 @@
 import { configsContract } from "@monkeytype/contracts/configs";
-import { initServer } from "@ts-rest/express";
+import { initServer } from "@ts-rest/fastify";
 import * as ConfigController from "../controllers/config";
 import { callController } from "../ts-rest-adapter";
 

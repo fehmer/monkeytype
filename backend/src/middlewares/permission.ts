@@ -3,7 +3,7 @@ import MonkeyError from "../utils/error";
 import type { Response, NextFunction } from "express";
 import { DBUser, getPartialUser } from "../dal/user";
 import { isAdmin } from "../dal/admin-uids";
-import { TsRestRequestHandler } from "@ts-rest/express";
+import { TsRestRequestHandler } from "@ts-rest/fastify";
 import {
   EndpointMetadata,
   RequestAuthenticationOptions,

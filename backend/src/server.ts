@@ -6,7 +6,7 @@ import {
   updateFromConfigurationFile,
 } from "./init/configuration";
 import app from "./app";
-import { Server } from "http";
+
 import { version } from "./version";
 import { recordServerVersion } from "./utils/prometheus";
 import * as RedisClient from "./init/redis";
@@ -19,7 +19,7 @@ import { createIndicies as leaderboardDbSetup } from "./dal/leaderboards";
 import { createIndicies as blocklistDbSetup } from "./dal/blocklist";
 import { getErrorMessage } from "./utils/error";
 
-async function bootServer(port: number): Promise<Server> {
+async function bootServer(port: number): Promise<string> {
   try {
     Logger.info(`Starting server version ${version}`);
     Logger.info(`Starting server in ${process.env["MODE"]} mode`);
@@ -85,9 +85,14 @@ async function bootServer(port: number): Promise<Server> {
     return process.exit(1);
   }
 
-  return app.listen(PORT, () => {
-    Logger.success(`API server listening on port ${port}`);
+  app.listen({
+    port: PORT,
+    host: "0.0.0.0",
+    listenTextResolver: () => {
+      Logger.success(`API server listening on port ${port}`);
+    },
   });
+  return "ok";
 }
 
 const PORT = parseInt(process.env["PORT"] ?? "5005", 10);

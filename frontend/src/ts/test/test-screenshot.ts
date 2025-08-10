@@ -15,6 +15,12 @@ import { convertRemToPixels } from "../utils/numbers";
 async function gethtml2canvas(): Promise<typeof import("html2canvas").default> {
   return (await import("html2canvas")).default;
 }
+import {
+  createContext,
+  destroyContext,
+  domToCanvas,
+  domToPng,
+} from "modern-screenshot";
 
 let revealReplay = false;
 let revertCookie = false;
@@ -132,7 +138,7 @@ async function generateCanvas(): Promise<HTMLCanvasElement | null> {
   try {
     const paddingX = convertRemToPixels(2);
     const paddingY = convertRemToPixels(2);
-
+    /*
     const canvas = await (
       await gethtml2canvas()
     )(document.body, {
@@ -143,9 +149,26 @@ async function generateCanvas(): Promise<HTMLCanvasElement | null> {
       y: sourceY - paddingY,
       logging: false, // Suppress html2canvas logs in console
       useCORS: true, // May be needed if user flags/icons are external
-    });
+  });
+  */
 
-    revert(); // Revert UI *after* canvas is successfully generated
+    const element = document.querySelector("#result") as HTMLElement;
+    const backgroundImage = document
+      .querySelector(".customBackground img")
+      ?.cloneNode(true) as HTMLElement;
+    (
+      document.querySelector(".customBackground img") as HTMLElement
+    ).style.opacity = "0";
+    element.insertBefore(backgroundImage, element.firstChild);
+
+    const context = await createContext(element, {
+      height: sourceHeight + paddingY * 2,
+      width: sourceWidth + paddingX + 2,
+      backgroundColor: await ThemeColors.get("bg"),
+    });
+    const canvas = await domToCanvas(context);
+
+    //    revert(); // Revert UI *after* canvas is successfully generated
     return canvas;
   } catch (e) {
     Notifications.add(

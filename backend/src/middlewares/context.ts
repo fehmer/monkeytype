@@ -11,9 +11,7 @@ export type Context = {
 
 /**
  * Add the context to the request
- * @param req
- * @param _res
- * @param next
+
  */
 
 async function contextMiddleware(fastify: FastifyInstance): Promise<void> {

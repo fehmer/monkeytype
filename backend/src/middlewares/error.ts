@@ -1,10 +1,9 @@
+import fp from "fastify-plugin";
 import * as db from "../init/db";
 import { v4 as uuidv4 } from "uuid";
 import Logger from "../utils/logger";
 import MonkeyError, { getErrorMessage } from "../utils/error";
 import { incrementBadAuth } from "./rate-limit";
-import type { NextFunction, Response } from "express";
-import { isCustomCode } from "../constants/monkey-status-codes";
 
 import {
   recordClientErrorByVersion,
@@ -33,7 +32,7 @@ type ErrorData = {
   uid: string;
 };
 
-function errorHandlingMiddleware(app: FastifyInstance): void {
+async function errorHandlingMiddleware(app: FastifyInstance): Promise<void> {
   app.setErrorHandler(async (error, req: FastifyRequestWithContext, res) => {
     try {
       const monkeyError = error as MonkeyError;
@@ -132,4 +131,4 @@ function handleErrorResponse(
   res.code(status).send({ message, data: data ?? null });
 }
 
-export default errorHandlingMiddleware;
+export default fp(errorHandlingMiddleware);

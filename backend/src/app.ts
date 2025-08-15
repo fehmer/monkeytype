@@ -1,5 +1,5 @@
 import helmet from "@fastify/helmet";
-import { addApiRoutes } from "./api/routes";
+import apiRoutes from "./api/routes";
 import Fastify, { FastifyInstance } from "fastify";
 import contextMiddleware from "./middlewares/context";
 import errorHandlingMiddleware from "./middlewares/error";
@@ -7,8 +7,8 @@ import {
   badAuthRateLimiterHandler,
   rootRateLimiter,
 } from "./middlewares/rate-limit";
-import { compatibilityCheckMiddleware } from "./middlewares/compatibilityCheck";
-import { etagMiddleware } from "./middlewares/etag";
+import compatibilityCheckMiddleware from "./middlewares/compatibilityCheck";
+import etagMiddleware from "./middlewares/etag";
 
 function buildApp(): FastifyInstance {
   const app = Fastify({
@@ -18,13 +18,14 @@ function buildApp(): FastifyInstance {
   //cors
   app.register(helmet);
 
-  compatibilityCheckMiddleware(app);
-  etagMiddleware(app);
-  errorHandlingMiddleware(app);
+  app.register(compatibilityCheckMiddleware);
+  app.register(etagMiddleware);
+  //TODO app.register(errorHandlingMiddleware);
+  app.register(contextMiddleware);
 
   /*
-  app.use(urlencoded({ extended: true }));
-  app.use(json());
+  not needed app.use(urlencoded({ extended: true }));
+  not needed app.use(json());
   
   done app.use(cors({ exposedHeaders: [COMPATIBILITY_CHECK_HEADER] }));
   done, need verify  app.use(helmet());
@@ -36,6 +37,7 @@ function buildApp(): FastifyInstance {
 
   app.use(badAuthRateLimiterHandler);
   app.use(rootRateLimiter);
+
   not needed app.use(v4RequestBody);
 
   app.set("etag", etagFn);
@@ -45,9 +47,7 @@ function buildApp(): FastifyInstance {
   done app.use(errorHandlingMiddleware);
 
 */
-  addApiRoutes(app);
-
-  app.register(contextMiddleware);
+  app.register(apiRoutes);
 
   return app;
 }

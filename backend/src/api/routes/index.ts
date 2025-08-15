@@ -1,4 +1,4 @@
-import _ from "lodash";
+import fp from "fastify-plugin";
 import { contract } from "@monkeytype/contracts/index";
 import psas from "./psas";
 import publicStats from "./public";
@@ -57,7 +57,7 @@ const router = s.router(contract, {
   webhooks,
 });
 
-export function addApiRoutes(app: FastifyInstance): void {
+async function addApiRoutes(app: FastifyInstance): Promise<void> {
   docs(BASE_ROUTE, app);
   // applyDevApiRoutes(app);
   //applyApiRoutes(app);
@@ -130,6 +130,7 @@ function prettyErrorMessage(issue: ZodIssue | undefined): string {
   const path = issue.path.length > 0 ? `"${issue.path.join(".")}" ` : "";
   return `${path}${issue.message}`;
 }
+
 /*
 
 function applyDevApiRoutes(app: Application): void {
@@ -196,3 +197,5 @@ function applyApiRoutes(app: Application): void {
   });
 }
 */
+
+export default fp(addApiRoutes);

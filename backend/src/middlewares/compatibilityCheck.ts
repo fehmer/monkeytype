@@ -1,3 +1,4 @@
+import fp from "fastify-plugin";
 import {
   COMPATIBILITY_CHECK,
   COMPATIBILITY_CHECK_HEADER,
@@ -8,8 +9,12 @@ import { FastifyInstance } from "fastify";
 /**
  * Add the COMPATIBILITY_CHECK_HEADER to each response
  */
-export function compatibilityCheckMiddleware(app: FastifyInstance): void {
+async function compatibilityCheckMiddleware(
+  app: FastifyInstance
+): Promise<void> {
   app.addHook("onSend", async (_req, reply) => {
     reply.header(COMPATIBILITY_CHECK_HEADER, COMPATIBILITY_CHECK);
   });
 }
+
+export default fp(compatibilityCheckMiddleware);

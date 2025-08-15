@@ -3,7 +3,6 @@ import { getCachedConfiguration } from "../init/configuration";
 import { DecodedToken } from "./auth";
 import { Configuration } from "@monkeytype/schemas/configuration";
 import { FastifyInstance } from "fastify";
-import { getMetadata } from "./utility";
 
 export type Context = {
   configuration: Configuration;

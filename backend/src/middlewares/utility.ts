@@ -48,6 +48,9 @@ export function getMetadata(req: FastifyRequest): EndpointMetadata {
     {}) as EndpointMetadata;
 }
 
+export function isTsRestRequest(req: FastifyRequest): boolean {
+  return req.routeOptions?.config?.["tsRestRoute"] !== undefined;
+}
 /**
  * The req.body property returns undefined when the body has not been parsed. In Express 4, it returns {} by default.
  * Restore the v4 behavior

@@ -1,24 +1,22 @@
-import _ from "lodash";
-import MonkeyError from "../utils/error";
-import type { Response, NextFunction } from "express";
-import { DBUser, getPartialUser } from "../dal/user";
-import { isAdmin } from "../dal/admin-uids";
-import { TsRestRequestHandler } from "@ts-rest/fastify";
 import {
   EndpointMetadata,
-  RequestAuthenticationOptions,
   PermissionId,
+  RequestAuthenticationOptions,
 } from "@monkeytype/contracts/util/api";
+import { FastifyInstance } from "fastify";
+import fp from "fastify-plugin";
+import { FastifyRequestWithContext } from "../api/types";
+import { isAdmin } from "../dal/admin-uids";
+import { DBUser, getPartialUser } from "../dal/user";
+import MonkeyError from "../utils/error";
 import { isDevEnvironment } from "../utils/misc";
-import { getMetadata } from "./utility";
-import { TsRestRequestWithContext } from "../api/types";
 import { DecodedToken } from "./auth";
-import { AppRoute, AppRouter } from "@ts-rest/core";
+import { getMetadata } from "./utility";
 
 type RequestPermissionCheck = {
   type: "request";
   criteria: (
-    req: TsRestRequestWithContext,
+    req: FastifyRequestWithContext,
     metadata: EndpointMetadata | undefined
   ) => Promise<boolean>;
   invalidMessage?: string;
@@ -72,42 +70,33 @@ const permissionChecks: Record<PermissionId, PermissionCheck> = {
   ),
 };
 
-export function verifyPermissions<
-  T extends AppRouter | AppRoute
->(): TsRestRequestHandler<T> {
-  return async (
-    req: TsRestRequestWithContext,
-    _res: Response,
-    next: NextFunction
-  ): Promise<void> => {
+async function verifyPermissionsMiddleware(
+  fastify: FastifyInstance
+): Promise<void> {
+  fastify.addHook("preHandler", async (req: FastifyRequestWithContext) => {
     const metadata = getMetadata(req);
     const requiredPermissionIds = getRequiredPermissionIds(metadata);
     if (
       requiredPermissionIds === undefined ||
       requiredPermissionIds.length === 0
     ) {
-      next();
       return;
     }
 
     const checks = requiredPermissionIds.map((id) => permissionChecks[id]);
 
     if (checks.some((it) => it === undefined)) {
-      next(new MonkeyError(500, "Unknown permission id."));
-      return;
+      throw new MonkeyError(500, "Unknown permission id.");
     }
 
     //handle request checks
     const requestChecks = checks.filter((it) => it.type === "request");
     for (const check of requestChecks) {
       if (!(await check.criteria(req, metadata))) {
-        next(
-          new MonkeyError(
-            403,
-            check.invalidMessage ?? "You don't have permission to do this."
-          )
+        throw new MonkeyError(
+          403,
+          check.invalidMessage ?? "You don't have permission to do this."
         );
-        return;
       }
     }
 
@@ -119,19 +108,15 @@ export function verifyPermissions<
     );
 
     if (!checkResult.passed) {
-      next(
-        new MonkeyError(
-          403,
-          checkResult.invalidMessage ?? "You don't have permission to do this."
-        )
+      throw new MonkeyError(
+        403,
+        checkResult.invalidMessage ?? "You don't have permission to do this."
       );
-      return;
     }
 
     //all checks passed
-    next();
     return;
-  };
+  });
 }
 
 function getRequiredPermissionIds(
@@ -198,3 +183,5 @@ async function checkUserPermissions(
     passed: true,
   };
 }
+
+export default fp(verifyPermissionsMiddleware);

@@ -1,31 +1,27 @@
-import type { Response, NextFunction } from "express";
-import { TsRestRequestHandler } from "@ts-rest/fastify";
-import { EndpointMetadata } from "@monkeytype/contracts/util/api";
-import MonkeyError from "../utils/error";
-import { Configuration } from "@monkeytype/schemas/configuration";
 import {
   ConfigurationPath,
   RequireConfiguration,
 } from "@monkeytype/contracts/require-configuration/index";
+import { EndpointMetadata } from "@monkeytype/contracts/util/api";
+import { Configuration } from "@monkeytype/schemas/configuration";
+import { FastifyInstance } from "fastify";
+import fp from "fastify-plugin";
+import { FastifyRequestWithContext } from "../api/types";
+import MonkeyError from "../utils/error";
 import { getMetadata } from "./utility";
-import { TsRestRequestWithContext } from "../api/types";
-import { AppRoute, AppRouter } from "@ts-rest/core";
 
-export function verifyRequiredConfiguration<
-  T extends AppRouter | AppRoute
->(): TsRestRequestHandler<T> {
-  return async (
-    req: TsRestRequestWithContext,
-    _res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    const requiredConfigurations = getRequireConfigurations(getMetadata(req));
+async function requiredConfigurationMiddleware(
+  fastify: FastifyInstance
+): Promise<void> {
+  fastify.addHook(
+    "preHandler",
+    async (req: FastifyRequestWithContext, _res) => {
+      const requiredConfigurations = getRequireConfigurations(getMetadata(req));
 
-    if (requiredConfigurations === undefined) {
-      next();
-      return;
-    }
-    try {
+      if (requiredConfigurations === undefined) {
+        return;
+      }
+
       for (const requireConfiguration of requiredConfigurations) {
         const value = getValue(
           req.ctx.configuration,
@@ -39,13 +35,10 @@ export function verifyRequiredConfiguration<
           );
         }
       }
-      next();
-      return;
-    } catch (e) {
-      next(e);
+
       return;
     }
-  };
+  );
 }
 
 function getValue(
@@ -85,3 +78,5 @@ function getRequireConfigurations(
     return metadata.requireConfiguration;
   return [metadata.requireConfiguration];
 }
+
+export default fp(requiredConfigurationMiddleware);

@@ -29,6 +29,7 @@
     "@fastify/etag": "git+ssh://github.com/fehmer/fastify-etag.git#feature/etag-prefix",
     "@fastify/helmet": "13.0.1",
     "@fastify/rate-limit": "10.3.0",
+    "@fastify/static": "8.2.0",
     "@monkeytype/contracts": "workspace:*",
     "@monkeytype/funbox": "workspace:*",
     "@monkeytype/util": "workspace:*",

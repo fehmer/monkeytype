@@ -1,44 +1,39 @@
-import fp from "fastify-plugin";
 import { contract } from "@monkeytype/contracts/index";
-import psas from "./psas";
-import publicStats from "./public";
-import users from "./users";
+import fp from "fastify-plugin";
 import { join } from "path";
-import quotes from "./quotes";
-import results from "./results";
-import presets from "./presets";
-import apeKeys from "./ape-keys";
+import { MonkeyResponse } from "../../utils/monkey-response";
+import { version } from "../../version";
 import admin from "./admin";
-import docs from "./docs";
-import webhooks from "./webhooks";
-import dev from "./dev";
+import apeKeys from "./ape-keys";
 import configs from "./configs";
 import configuration from "./configuration";
-import { version } from "../../version";
+import dev from "./dev";
+import docs from "./docs";
 import leaderboards from "./leaderboards";
-import addSwaggerMiddlewares from "./swagger";
-import { MonkeyResponse } from "../../utils/monkey-response";
+import presets from "./presets";
+import psas from "./psas";
+import publicStats from "./public";
+import quotes from "./quotes";
+import results from "./results";
+import users from "./users";
+import webhooks from "./webhooks";
 
-import { isDevEnvironment } from "../../utils/misc";
-import { getLiveConfiguration } from "../../init/configuration";
-import Logger from "../../utils/logger";
-import { initServer } from "@ts-rest/fastify";
-import { ZodIssue } from "zod";
 import { MonkeyValidationError } from "@monkeytype/contracts/util/api";
-import authMiddleware from "../../middlewares/auth";
-import { rateLimitRequest } from "../../middlewares/rate-limit";
-import { verifyPermissions } from "../../middlewares/permission";
-import { verifyRequiredConfiguration } from "../../middlewares/configuration";
-import { ExpressRequestWithContext } from "../types";
+import { initServer } from "@ts-rest/fastify";
 import { FastifyInstance } from "fastify";
+import { ZodIssue } from "zod";
+import { getLiveConfiguration } from "../../init/configuration";
+import authMiddleware from "../../middlewares/auth";
+import requiredConfigurationMiddleware from "../../middlewares/configuration";
+import maintenanceMiddleware from "../../middlewares/maintenance";
+import verifyPermissionsMiddleware from "../../middlewares/permission";
+import Logger from "../../utils/logger";
+import { isDevEnvironment } from "../../utils/misc";
+import fastifyStatic from "@fastify/static";
 
 const pathOverride = process.env["API_PATH_OVERRIDE"];
 const BASE_ROUTE = pathOverride !== undefined ? `/${pathOverride}` : "";
 const APP_START_TIME = Date.now();
-
-const API_ROUTE_MAP = {
-  "/docs": docs,
-};
 
 const s = initServer();
 const router = s.router(contract, {
@@ -58,27 +53,39 @@ const router = s.router(contract, {
 });
 
 async function addApiRoutes(app: FastifyInstance): Promise<void> {
+  app.register(maintenanceMiddleware);
+
+  applyDevApiRoutes(app);
   docs(BASE_ROUTE, app);
-  // applyDevApiRoutes(app);
-  //applyApiRoutes(app);
+
   applyTsRestApiRoutes(app);
   //app.register(s.plugin(router));
 
   app.register(authMiddleware);
-  /*
-  app.use((req, res) => {
-    res
-      .status(404)
-      .json(
+  app.register(requiredConfigurationMiddleware);
+  app.register(verifyPermissionsMiddleware);
+
+  // 404 handler
+  app.setNotFoundHandler((req, reply) => {
+    reply
+      .code(404)
+      .send(
         new MonkeyResponse(
-          `Unknown request URL (${req.method}: ${req.path})`,
+          `Unknown request URL (${req.method}: ${req.url})`,
           null
         )
       );
-
   });
-  
-*/
+
+  //index route
+  app.get("/", async (_req, reply) => {
+    reply.code(200).send(
+      new MonkeyResponse("ok", {
+        uptime: Date.now() - APP_START_TIME,
+        version,
+      })
+    );
+  });
 }
 
 function applyTsRestApiRoutes(app: FastifyInstance): void {
@@ -120,10 +127,9 @@ function applyTsRestApiRoutes(app: FastifyInstance): void {
 
     /*
     globalMiddleware: [
-      authenticateTsRestRequest(),
+
       rateLimitRequest(),
-      verifyRequiredConfiguration(),
-      verifyPermissions(),
+      
     ],
     */
   });
@@ -135,71 +141,41 @@ function prettyErrorMessage(issue: ZodIssue | undefined): string {
   return `${path}${issue.message}`;
 }
 
-/*
-
-function applyDevApiRoutes(app: Application): void {
+function applyDevApiRoutes(app: FastifyInstance): void {
   if (isDevEnvironment()) {
     //disable csp to allow assets to load from unsecured http
-    app.use((req, res, next) => {
-      res.setHeader("Content-Security-Policy", "");
-      next();
+    app.addHook("onRequest", async (_req, res) => {
+      res.header("Content-Security-Policy", "");
     });
-    app.use("/configure", expressStatic(join(__dirname, "../../../private")));
 
-    app.use(async (req, res, next) => {
+    //configuration page
+    console.log(join(__dirname, "../../../private"));
+    app.register(fastifyStatic, {
+      root: join(__dirname, "../../../private"),
+      prefix: "/configure",
+      index: "index.html",
+      prefixAvoidTrailingSlash: true,
+    });
+
+    //slowdown
+    app.addHook("onRequest", async (req) => {
       const slowdown = (await getLiveConfiguration()).dev.responseSlowdownMs;
       if (slowdown > 0) {
         Logger.info(
-          `Simulating ${slowdown}ms delay for ${req.method} ${req.path}`
+          `Simulating ${slowdown}ms delay for ${req.method} ${
+            req.routeOptions.url ?? req.url
+          }`
         );
         await new Promise((resolve) => setTimeout(resolve, slowdown));
       }
-      next();
     });
   }
 }
-
+/*
 function applyApiRoutes(app: Application): void {
   addSwaggerMiddlewares(app);
 
-  app.use(
-    (
-      req: ExpressRequestWithContext,
-      res: Response,
-      next: NextFunction
-    ): void => {
-      if (req.path.startsWith("/configuration")) {
-        next();
-        return;
-      }
-
-      const inMaintenance =
-        process.env["MAINTENANCE"] === "true" ||
-        req.ctx.configuration.maintenance;
-
-      if (inMaintenance) {
-        res.status(503).json({ message: "Server is down for maintenance" });
-        return;
-      }
-
-      next();
-    }
-  );
-
-  app.get("/", (_req, res) => {
-    res.status(200).json(
-      new MonkeyResponse("ok", {
-        uptime: Date.now() - APP_START_TIME,
-        version,
-      })
-    );
-  });
-
-  _.each(API_ROUTE_MAP, (router: Router, route) => {
-    const apiRoute = `${BASE_ROUTE}${route}`;
-    app.use(apiRoute, router);
-  });
-}
+  
 */
 
 export default fp(addApiRoutes);

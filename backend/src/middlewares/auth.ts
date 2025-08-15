@@ -18,7 +18,7 @@ import {
   RequestAuthenticationOptions,
 } from "@monkeytype/contracts/util/api";
 import { Configuration } from "@monkeytype/schemas/configuration";
-import { getMetadata } from "./utility";
+import { getMetadata, isTsRestRequest } from "./utility";
 import { FastifyRequestWithContext } from "../api/types";
 import { FastifyInstance, FastifyRequest } from "fastify";
 
@@ -46,6 +46,8 @@ async function authMiddleware(fastify: FastifyInstance): Promise<void> {
   fastify.addHook(
     "preHandler",
     async (req: FastifyRequestWithContext, _res) => {
+      const isRoute = isTsRestRequest(req);
+
       const options = {
         ...DEFAULT_OPTIONS,
         ...((getMetadata(req)["authenticationOptions"] ??
@@ -73,7 +75,7 @@ async function authMiddleware(fastify: FastifyInstance): Promise<void> {
             req.ctx.configuration,
             options
           );
-        } else if (isPublic === true) {
+        } else if (isPublic === true || !isRoute) {
           token = {
             type: "None",
             uid: "",

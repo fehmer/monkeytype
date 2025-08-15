@@ -1,8 +1,7 @@
-import "dotenv/config";
-import { Counter, Histogram, Gauge } from "prom-client";
 import { CompletedEvent } from "@monkeytype/schemas/results";
-import { Request } from "express";
+import "dotenv/config";
 import { FastifyRequest } from "fastify";
+import { Counter, Gauge, Histogram } from "prom-client";
 
 const auth = new Counter({
   name: "api_request_auth_total",
@@ -217,7 +216,6 @@ export function recordAuthTime(
   req: FastifyRequest
 ): void {
   const reqPath = req.routeOptions.url;
-  //TODO console.log("record", reqPath);
   if (reqPath === undefined) return;
 
   let normalizedPath = "/";

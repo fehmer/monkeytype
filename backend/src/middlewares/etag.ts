@@ -1,12 +1,14 @@
 import fp from "fastify-plugin";
 import { FastifyInstance } from "fastify";
 import etag from "@fastify/etag";
+import { COMPATIBILITY_CHECK } from "@monkeytype/contracts";
 //todo import { COMPATIBILITY_CHECK } from "@monkeytype/contracts";
 
 async function etagMiddleware(app: FastifyInstance): Promise<void> {
   app.register(etag, {
     weak: true,
     algorithm: "sha1",
+    etagPrefix: COMPATIBILITY_CHECK,
     //TODO check  how  to add version prefix
   });
 }

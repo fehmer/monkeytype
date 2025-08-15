@@ -5,6 +5,7 @@ import { isDevEnvironment } from "../utils/misc";
 import MonkeyError from "../utils/error";
 import { EndpointMetadata } from "@monkeytype/contracts/util/api";
 import { TsRestRequestWithContext } from "../api/types";
+import { FastifyRequest } from "fastify";
 
 /**
  * record the client version from the `x-client-version`  or ` client-version` header to prometheus
@@ -41,9 +42,10 @@ export function onlyAvailableOnDev(): RequestHandler {
   };
 }
 
-export function getMetadata(req: TsRestRequestWithContext): EndpointMetadata {
+export function getMetadata(req: FastifyRequest): EndpointMetadata {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  return (req.tsRestRoute["metadata"] ?? {}) as EndpointMetadata;
+  return (req.routeOptions?.config?.["tsRestRoute"]?.["metadata"] ??
+    {}) as EndpointMetadata;
 }
 
 /**

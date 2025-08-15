@@ -1,9 +1,9 @@
+import fp from "fastify-plugin";
 import { compare } from "bcrypt";
 import { getApeKey, updateLastUsedOn } from "../dal/ape-keys";
 import MonkeyError from "../utils/error";
 import { verifyIdToken } from "../utils/auth";
 import { base64UrlDecode, isDevEnvironment } from "../utils/misc";
-import { NextFunction, Response } from "express";
 import statuses from "../constants/monkey-status-codes";
 import {
   incrementAuth,
@@ -12,15 +12,15 @@ import {
 } from "../utils/prometheus";
 import crypto from "crypto";
 import { performance } from "perf_hooks";
-import { TsRestRequestHandler } from "@ts-rest/fastify";
-import { AppRoute, AppRouter } from "@ts-rest/core";
+
 import {
   EndpointMetadata,
   RequestAuthenticationOptions,
 } from "@monkeytype/contracts/util/api";
 import { Configuration } from "@monkeytype/schemas/configuration";
 import { getMetadata } from "./utility";
-import { TsRestRequestWithContext } from "../api/types";
+import { FastifyRequestWithContext } from "../api/types";
+import { FastifyInstance, FastifyRequest } from "fastify";
 
 export type DecodedToken = {
   type: "Bearer" | "ApeKey" | "None" | "GithubWebhook";
@@ -41,92 +41,87 @@ const DEFAULT_OPTIONS: RequestAuthenticationOptions = {
  * By default a Bearer token with user authentication is required.
  * @returns
  */
-export function authenticateTsRestRequest<
-  T extends AppRouter | AppRoute
->(): TsRestRequestHandler<T> {
-  return async (
-    req: TsRestRequestWithContext,
-    _res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    const options = {
-      ...DEFAULT_OPTIONS,
-      ...((getMetadata(req)["authenticationOptions"] ??
-        {}) as EndpointMetadata),
-    };
 
-    const startTime = performance.now();
-    let token: DecodedToken;
-    let authType = "None";
-
-    const isPublic =
-      options.isPublic || (options.isPublicOnDev && isDevEnvironment());
-
-    const {
-      authorization: authHeader,
-      "x-hub-signature-256": githubWebhookHeader,
-    } = req.headers;
-
-    try {
-      if (options.isGithubWebhook) {
-        token = authenticateGithubWebhook(req, githubWebhookHeader);
-      } else if (authHeader !== undefined && authHeader !== "") {
-        token = await authenticateWithAuthHeader(
-          authHeader,
-          req.ctx.configuration,
-          options
-        );
-      } else if (isPublic === true) {
-        token = {
-          type: "None",
-          uid: "",
-          email: "",
-        };
-      } else {
-        throw new MonkeyError(
-          401,
-          "Unauthorized",
-          `endpoint: ${req.baseUrl} no authorization header found`
-        );
-      }
-
-      incrementAuth(token.type);
-
-      req.ctx = {
-        ...req.ctx,
-        decodedToken: token,
+async function authMiddleware(fastify: FastifyInstance): Promise<void> {
+  fastify.addHook(
+    "preHandler",
+    async (req: FastifyRequestWithContext, _res) => {
+      const options = {
+        ...DEFAULT_OPTIONS,
+        ...((getMetadata(req)["authenticationOptions"] ??
+          {}) as EndpointMetadata),
       };
-    } catch (error) {
-      authType = authHeader?.split(" ")[0] ?? "None";
 
+      const startTime = performance.now();
+      let token: DecodedToken;
+      let authType = "None";
+
+      const isPublic =
+        options.isPublic || (options.isPublicOnDev && isDevEnvironment());
+
+      const {
+        authorization: authHeader,
+        "x-hub-signature-256": githubWebhookHeader,
+      } = req.headers;
+
+      try {
+        if (options.isGithubWebhook) {
+          token = authenticateGithubWebhook(req, githubWebhookHeader);
+        } else if (authHeader !== undefined && authHeader !== "") {
+          token = await authenticateWithAuthHeader(
+            authHeader,
+            req.ctx.configuration,
+            options
+          );
+        } else if (isPublic === true) {
+          token = {
+            type: "None",
+            uid: "",
+            email: "",
+          };
+        } else {
+          throw new MonkeyError(
+            401,
+            "Unauthorized",
+            `endpoint: ${req.routeOptions.url} no authorization header found`
+          );
+        }
+
+        incrementAuth(token.type);
+
+        req.ctx = {
+          ...req.ctx,
+          decodedToken: token,
+        };
+      } catch (error) {
+        authType = authHeader?.split(" ")[0] ?? "None";
+
+        recordAuthTime(
+          authType,
+          "failure",
+          Math.round(performance.now() - startTime),
+          req
+        );
+
+        throw error;
+      }
       recordAuthTime(
-        authType,
-        "failure",
+        token.type,
+        "success",
         Math.round(performance.now() - startTime),
         req
       );
 
-      next(error);
-      return;
+      const country = req.headers["cf-ipcountry"] as string;
+      if (country) {
+        recordRequestCountry(country, req);
+      }
+
+      // if (req.method !== "OPTIONS" && req?.ctx?.decodedToken?.uid) {
+      //   recordRequestForUid(req.ctx.decodedToken.uid);
+      // }
     }
-    recordAuthTime(
-      token.type,
-      "success",
-      Math.round(performance.now() - startTime),
-      req
-    );
-
-    const country = req.headers["cf-ipcountry"] as string;
-    if (country) {
-      recordRequestCountry(country, req);
-    }
-
-    // if (req.method !== "OPTIONS" && req?.ctx?.decodedToken?.uid) {
-    //   recordRequestForUid(req.ctx.decodedToken.uid);
-    // }
-
-    next();
-  };
+  );
 }
 
 async function authenticateWithAuthHeader(
@@ -317,7 +312,7 @@ async function authenticateWithUid(token: string): Promise<DecodedToken> {
 }
 
 export function authenticateGithubWebhook(
-  req: TsRestRequestWithContext,
+  req: FastifyRequest,
   authHeader: string | string[] | undefined
 ): DecodedToken {
   try {
@@ -362,3 +357,5 @@ export function authenticateGithubWebhook(
     );
   }
 }
+
+export default fp(authMiddleware);

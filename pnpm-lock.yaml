@@ -51,8 +51,8 @@ importers:
         specifier: 1.2.0
         version: 1.2.0
       '@fastify/etag':
-        specifier: 6.0.3
-        version: 6.0.3
+        specifier: git+ssh://github.com/fehmer/fastify-etag.git#feature/etag-prefix
+        version: https://codeload.github.com/fehmer/fastify-etag/tar.gz/0e53963a07b0cfc6661d799b66d247f344fdb04f
       '@fastify/helmet':
         specifier: 13.0.1
         version: 13.0.1
@@ -98,9 +98,6 @@ importers:
       dotenv:
         specifier: 16.4.5
         version: 16.4.5
-      etag:
-        specifier: 1.8.1
-        version: 1.8.1
       fastify:
         specifier: 5.4.0
         version: 5.4.0
@@ -1770,8 +1767,9 @@ packages:
   '@fastify/error@4.2.0':
     resolution: {integrity: sha512-RSo3sVDXfHskiBZKBPRgnQTtIqpi/7zhJOEmAxCiBcM7d0uwdGdxLlsCaLzGs8v8NnxIRlfG0N51p5yFaOentQ==}
 
-  '@fastify/etag@6.0.3':
-    resolution: {integrity: sha512-pMXohCA6Bk9JBNLl/KhHkSCGN7PCbgwVqHydwMsd1sVKtV8YNuzRW7lEe1VYap/MTNOn/Q8OfcR667lyrNbT/A==}
+  '@fastify/etag@https://codeload.github.com/fehmer/fastify-etag/tar.gz/0e53963a07b0cfc6661d799b66d247f344fdb04f':
+    resolution: {tarball: https://codeload.github.com/fehmer/fastify-etag/tar.gz/0e53963a07b0cfc6661d799b66d247f344fdb04f}
+    version: 6.0.3
 
   '@fastify/fast-json-stringify-compiler@5.0.3':
     resolution: {integrity: sha512-uik7yYHkLr6fxd8hJSZ8c+xF4WafPK+XzneQDPU+D10r5X19GW8lJcom2YijX2+qtFF1ENJlHXKFM9ouXNJYgQ==}
@@ -11561,7 +11559,7 @@ snapshots:
 
   '@fastify/error@4.2.0': {}
 
-  '@fastify/etag@6.0.3':
+  '@fastify/etag@https://codeload.github.com/fehmer/fastify-etag/tar.gz/0e53963a07b0cfc6661d799b66d247f344fdb04f':
     dependencies:
       fastify-plugin: 5.0.1
 

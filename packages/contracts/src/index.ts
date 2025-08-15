@@ -27,7 +27,7 @@ export const contract = c.router({
   configuration: configurationContract,
   dev: devContract,
   users: usersContract,
-  //quotes: quotesContract,
+  quotes: quotesContract,
   webhooks: webhooksContract,
 });
 

@@ -2,6 +2,7 @@ import "dotenv/config";
 import { Counter, Histogram, Gauge } from "prom-client";
 import { CompletedEvent } from "@monkeytype/schemas/results";
 import { Request } from "express";
+import { FastifyRequest } from "fastify";
 
 const auth = new Counter({
   name: "api_request_auth_total",
@@ -213,11 +214,11 @@ export function recordAuthTime(
   type: string,
   status: "success" | "failure",
   time: number,
-  req: Request
+  req: FastifyRequest
 ): void {
-  // for some reason route is not in the types
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  const reqPath = req.baseUrl + req.route.path;
+  const reqPath = req.routeOptions.url;
+  //TODO console.log("record", reqPath);
+  if (reqPath === undefined) return;
 
   let normalizedPath = "/";
   if (reqPath !== "/") {
@@ -235,10 +236,12 @@ const requestCountry = new Counter({
   labelNames: ["path", "country"],
 });
 
-export function recordRequestCountry(country: string, req: Request): void {
-  // for some reason route is not in the types
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  const reqPath = req.baseUrl + req.route.path;
+export function recordRequestCountry(
+  country: string,
+  req: FastifyRequest
+): void {
+  const reqPath = req.routeOptions.url;
+  if (reqPath === undefined) return;
 
   let normalizedPath = "/";
   if (reqPath !== "/") {

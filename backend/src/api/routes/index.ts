@@ -25,7 +25,7 @@ import Logger from "../../utils/logger";
 import { initServer } from "@ts-rest/fastify";
 import { ZodIssue } from "zod";
 import { MonkeyValidationError } from "@monkeytype/contracts/util/api";
-import { authenticateTsRestRequest } from "../../middlewares/auth";
+import authMiddleware from "../../middlewares/auth";
 import { rateLimitRequest } from "../../middlewares/rate-limit";
 import { verifyPermissions } from "../../middlewares/permission";
 import { verifyRequiredConfiguration } from "../../middlewares/configuration";
@@ -53,7 +53,7 @@ const router = s.router(contract, {
   configuration,
   dev,
   users,
-  //quotes,
+  quotes,
   webhooks,
 });
 
@@ -64,6 +64,7 @@ async function addApiRoutes(app: FastifyInstance): Promise<void> {
   applyTsRestApiRoutes(app);
   //app.register(s.plugin(router));
 
+  app.register(authMiddleware);
   /*
   app.use((req, res) => {
     res
@@ -116,12 +117,15 @@ function applyTsRestApiRoutes(app: FastifyInstance): void {
         .code(422)
         .send({ message, validationErrors } as MonkeyValidationError);
     },
-    /*globalMiddleware: [
+
+    /*
+    globalMiddleware: [
       authenticateTsRestRequest(),
       rateLimitRequest(),
       verifyRequiredConfiguration(),
       verifyPermissions(),
-    ],*/
+    ],
+    */
   });
 }
 

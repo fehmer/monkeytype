@@ -42,7 +42,7 @@ const API_ROUTE_MAP = {
 
 const s = initServer();
 const router = s.router(contract, {
-  /*admin,
+  admin,
   apeKeys,
   configs,
   presets,
@@ -53,13 +53,12 @@ const router = s.router(contract, {
   configuration,
   dev,
   users,
-  quotes,
+  //quotes,
   webhooks,
- */
-  leaderboards,
 });
 
 export function addApiRoutes(app: FastifyInstance): void {
+  docs(BASE_ROUTE, app);
   // applyDevApiRoutes(app);
   //applyApiRoutes(app);
   applyTsRestApiRoutes(app);
@@ -84,8 +83,8 @@ export function addApiRoutes(app: FastifyInstance): void {
 function applyTsRestApiRoutes(app: FastifyInstance): void {
   s.registerRouter(contract, router, app, {
     jsonQuery: true,
-    /*
-    requestValidationErrorHandler(err, req, res, _next) {
+
+    requestValidationErrorHandler(err, req, res) {
       let message: string | undefined = undefined;
       let validationErrors: string[] | undefined = undefined;
 
@@ -104,19 +103,19 @@ function applyTsRestApiRoutes(app: FastifyInstance): void {
       } else {
         Logger.error(
           `Unknown validation error for ${req.method} ${
-            req.path
+            req.routeOptions.url
           }: ${JSON.stringify(err)}`
         );
         res
-          .status(500)
-          .json({ message: "Unknown validation error. Contact support." });
+          .code(500)
+          .send({ message: "Unknown validation error. Contact support." });
         return;
       }
 
       res
-        .status(422)
-        .json({ message, validationErrors } as MonkeyValidationError);
-    },*/
+        .code(422)
+        .send({ message, validationErrors } as MonkeyValidationError);
+    },
     /*globalMiddleware: [
       authenticateTsRestRequest(),
       rateLimitRequest(),
@@ -126,13 +125,12 @@ function applyTsRestApiRoutes(app: FastifyInstance): void {
   });
 }
 
-/*
-
 function prettyErrorMessage(issue: ZodIssue | undefined): string {
   if (issue === undefined) return "";
   const path = issue.path.length > 0 ? `"${issue.path.join(".")}" ` : "";
   return `${path}${issue.message}`;
 }
+/*
 
 function applyDevApiRoutes(app: Application): void {
   if (isDevEnvironment()) {

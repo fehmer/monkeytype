@@ -85,13 +85,13 @@ async function bootServer(port: number): Promise<string> {
     return process.exit(1);
   }
 
-  app.listen({
-    port: PORT,
-    host: "0.0.0.0",
-    listenTextResolver: () => {
-      Logger.success(`API server listening on port ${port}`);
+  app.listen(
+    {
+      port: PORT,
+      host: "0.0.0.0",
     },
-  });
+    () => Logger.success(`API server listening on port ${port}`)
+  );
   return "ok";
 }
 

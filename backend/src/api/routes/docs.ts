@@ -1,33 +1,42 @@
-import { Response, Router } from "express";
+import { FastifyInstance, FastifyReply } from "fastify";
+import { readFileSync } from "fs";
+import path from "path";
 
-const router = Router();
+const root = __dirname + "/../../../dist/static/";
+const internalHtml = readFileSync(path.join(root, "api/internal.html"), "utf8");
+const internalJson = readFileSync(path.join(root, "api/openapi.json"), "utf8");
+const publicHtml = readFileSync(path.join(root, "api/public.html"), "utf8");
+const publicJson = readFileSync(path.join(root, "api/public.json"), "utf8");
 
-const root = __dirname + "/../../../dist/static";
+export default function docs(baseUrl: string, app: FastifyInstance): void {
+  const basePath = `${baseUrl}/docs`;
+  app.get(`${basePath}/internal`, async (_req, reply) => {
+    setCsp(reply);
+    return reply.send(internalHtml);
+  });
 
-router.use("/internal", (req, res) => {
-  setCsp(res);
-  res.sendFile("api/internal.html", { root });
-});
+  app.get(`${basePath}/internal.json`, async (_req, reply) => {
+    return reply.type("application/json").send(internalJson);
+  });
 
-router.use("/internal.json", (req, res) => {
-  res.setHeader("Content-Type", "application/json");
-  res.sendFile("api/openapi.json", { root });
-});
+  app.get(`${basePath}/public`, async (_req, reply) => {
+    setCsp(reply);
+    return reply.send(publicHtml);
+  });
 
-router.use(["/public", "/"], (req, res) => {
-  setCsp(res);
-  res.sendFile("api/public.html", { root });
-});
+  app.get(`${basePath}`, async (_req, reply) => {
+    setCsp(reply);
+    return reply.send(publicHtml);
+  });
 
-router.use("/public.json", (req, res) => {
-  res.setHeader("Content-Type", "application/json");
-  res.sendFile("api/public.json", { root });
-});
+  app.get(`${basePath}/public.json`, async (_req, reply) => {
+    return reply.type("application/json").send(publicJson);
+  });
+}
 
-export default router;
-
-function setCsp(res: Response): void {
-  res.setHeader(
+function setCsp(reply: FastifyReply): void {
+  reply.header("Content-Type", "text/html; charset=utf-8");
+  reply.header(
     "Content-Security-Policy",
     "default-src 'self';base-uri 'self';block-all-mixed-content;font-src 'self' https: data:;frame-ancestors 'self';img-src 'self' monkeytype.com cdn.redocly.com data:;object-src 'none';script-src 'self' cdn.redocly.com 'unsafe-inline'; worker-src blob: data;script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
   );

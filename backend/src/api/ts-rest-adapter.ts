@@ -1,10 +1,11 @@
 import { AppRoute, AppRouter } from "@ts-rest/core";
+import * as fastify from "fastify";
 import { MonkeyResponse } from "../utils/monkey-response";
 import { Context } from "../middlewares/context";
 import { MonkeyRequest } from "./types";
 
 export function callController<
-  TRoute extends AppRoute | AppRouter,
+  TRoute extends AppRoute,
   TQuery,
   TBody,
   TParams,
@@ -13,7 +14,7 @@ export function callController<
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
   TStatus = 200
 >(
-  handler: MonkeyHandler<TQuery, TBody, TParams, TResponse>
+  handler: MonkeyHandler<TQuery, TBody, TParams, MonkeyResponse<TResponse>>
 ): (all: TypeSafeTsRestRequest<TRoute, TQuery, TBody, TParams>) => Promise<{
   status: TStatus;
   body: MonkeyResponse<TResponse>;
@@ -46,7 +47,6 @@ type WithBody<T> = {
 type WithQuery<T> = {
   query: T;
 };
-
 type WithParams<T> = {
   params: T;
 };
@@ -63,15 +63,45 @@ type WithoutParams = {
 
 type MonkeyHandler<TQuery, TBody, TParams, TResponse> = (
   req: MonkeyRequest<TQuery, TBody, TParams>
-) => Promise<MonkeyResponse<TResponse>>;
+) => Promise<TResponse>;
 
 type TypeSafeTsRestRequest<
-  TRoute extends AppRoute | AppRouter,
+  TRoute extends AppRoute,
   TQuery,
   TBody,
   TParams
-> = {
-  req: TsRestRequest<TRoute>;
-} & (TQuery extends undefined ? WithoutQuery : WithQuery<TQuery>) &
+> = AppRouteImplementation<TRoute> &
+  (TQuery extends undefined ? WithoutQuery : WithQuery<TQuery>) &
   (TBody extends undefined ? WithoutBody : WithBody<TBody>) &
   (TParams extends undefined ? WithoutParams : WithParams<TParams>);
+
+export type TsRestRequest<T extends AppRoute | AppRouter> =
+  fastify.FastifyRequest<
+    fastify.RouteGenericInterface,
+    fastify.RawServerDefault,
+    fastify.RawRequestDefaultExpression,
+    fastify.FastifySchema,
+    fastify.FastifyTypeProviderDefault
+  > & {
+    tsRestRoute: T;
+    ctx: Readonly<Context>;
+  };
+
+type AppRouteImplementation<T extends AppRoute> = {
+  request: fastify.FastifyRequest<
+    fastify.RouteGenericInterface,
+    fastify.RawServerDefault,
+    fastify.RawRequestDefaultExpression,
+    fastify.FastifySchema,
+    fastify.FastifyTypeProviderDefault,
+    fastify.FastifyContextConfig<T>
+  >;
+  reply: fastify.FastifyReply<
+    fastify.RawServerDefault,
+    fastify.RawRequestDefaultExpression,
+    fastify.RawReplyDefaultExpression,
+    fastify.RouteGenericInterface,
+    fastify.FastifyContextConfig<T>
+  >;
+  appRoute: T;
+};

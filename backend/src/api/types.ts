@@ -1,18 +1,19 @@
-import { TsRestRequest as TsRestRequestGeneric } from "@ts-rest/fastify";
-import { Request as ExpressRequest } from "express";
+import { TsRestRequest as TsRestRequestGeneric } from "./ts-rest-adapter";
 import { Context } from "../middlewares/context";
+import { FastifyRequest } from "fastify";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type TsRestRequest = TsRestRequestGeneric<any>;
 
+//TODO remove?
 export type ExpressRequestWithContext = {
   ctx: Readonly<Context>;
-} & ExpressRequest;
+} & FastifyRequest;
 
 export type TsRestRequestWithContext = {
   ctx: Readonly<Context>;
 } & TsRestRequest &
-  ExpressRequest;
+  FastifyRequest;
 
 export type MonkeyRequest<
   TQuery = undefined,
@@ -23,5 +24,5 @@ export type MonkeyRequest<
   body: Readonly<TBody>;
   params: Readonly<TParams>;
   ctx: Readonly<Context>;
-  raw: Readonly<TsRestRequest>;
+  raw: Readonly<FastifyRequest>;
 };

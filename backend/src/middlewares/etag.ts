@@ -1,0 +1,27 @@
+import { FastifyInstance } from "fastify";
+import etag from "@fastify/etag";
+//todo import { COMPATIBILITY_CHECK } from "@monkeytype/contracts";
+
+export function etagMiddleware(app: FastifyInstance): void {
+  app.register(etag, {
+    weak: true,
+    algorithm: "sha1",
+    //TODO check  how  to add version prefix
+  });
+}
+
+/* Old code
+
+return function generateETag(body, encoding) {
+    const buf = !Buffer.isBuffer(body) ? Buffer.from(body, encoding) : body;
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+    const generatedTag: string = etag(buf, options);
+
+    //custom code to add the version number
+    if (generatedTag.startsWith("W/")) {
+      return `W/"V${COMPATIBILITY_CHECK}-${generatedTag.slice(3)}`;
+    }
+    return `"V${COMPATIBILITY_CHECK}-${generatedTag.slice(1)}`;
+  };
+  */

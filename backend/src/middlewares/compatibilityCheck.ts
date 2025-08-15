@@ -2,19 +2,14 @@ import {
   COMPATIBILITY_CHECK,
   COMPATIBILITY_CHECK_HEADER,
 } from "@monkeytype/contracts";
-import type { Response, NextFunction, Request } from "express";
+
+import { FastifyInstance } from "fastify";
 
 /**
  * Add the COMPATIBILITY_CHECK_HEADER to each response
- * @param _req
- * @param res
- * @param next
  */
-export async function compatibilityCheckMiddleware(
-  _req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
-  res.setHeader(COMPATIBILITY_CHECK_HEADER, COMPATIBILITY_CHECK);
-  next();
+export function compatibilityCheckMiddleware(app: FastifyInstance): void {
+  app.addHook("onSend", async (_req, reply) => {
+    reply.header(COMPATIBILITY_CHECK_HEADER, COMPATIBILITY_CHECK);
+  });
 }

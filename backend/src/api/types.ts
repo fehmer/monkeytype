@@ -6,7 +6,7 @@ import { FastifyRequest } from "fastify";
 export type TsRestRequest = TsRestRequestGeneric<any>;
 
 //TODO remove?
-export type ExpressRequestWithContext = {
+export type FastifyRequestWithContext = {
   ctx: Readonly<Context>;
 } & FastifyRequest;
 

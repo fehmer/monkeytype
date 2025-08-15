@@ -19,9 +19,11 @@ import statuses from "../constants/monkey-status-codes";
 import { getMetadata } from "./utility";
 import {
   ExpressRequestWithContext,
+  FastifyRequestWithContext,
   TsRestRequestWithContext,
 } from "../api/types";
 import { AppRoute, AppRouter } from "@ts-rest/core";
+import { FastifyReply, FastifyRequestContext } from "fastify";
 
 export const REQUEST_MULTIPLIER = isDevEnvironment() ? 100_000 : 1;
 
@@ -184,8 +186,8 @@ export async function badAuthRateLimiterHandler(
 }
 
 export async function incrementBadAuth(
-  req: ExpressRequestWithContext,
-  res: Response,
+  req: FastifyRequestWithContext,
+  res: FastifyReply,
   status: number
 ): Promise<void> {
   const { enabled, penalty, flaggedStatusCodes } =

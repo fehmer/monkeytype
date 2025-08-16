@@ -6,7 +6,11 @@ async function maintenanceMiddleware(fastify: FastifyInstance): Promise<void> {
   fastify.addHook(
     "onRequest",
     async (req: FastifyRequestWithContext, reply) => {
-      if (req.url.startsWith("/configuration")) return;
+      if (
+        req.url.startsWith("/configuration") ||
+        req.url.startsWith("/configure")
+      )
+        return;
 
       const inMaintenance =
         process.env["MAINTENANCE"] === "true" ||

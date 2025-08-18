@@ -138,18 +138,39 @@ async function generateCanvas(): Promise<HTMLCanvasElement | null> {
       document.documentElement.clientHeight
     );
 
+    const element = document.createElement("div");
+    element.style.height = `${targetHeight} px`;
+    element.style.width = `${targetWidth} px`;
+    const background = (
+      document.querySelector(".customBackground") as HTMLImageElement
+    ).cloneNode(true) as HTMLElement;
+    const body = document.body;
+    const result = document.querySelector("#result") as HTMLElement;
+    const originalParent = result.parentElement;
+    const originalSibling = result.nextSibling;
+    const position = result.getBoundingClientRect();
+
+    background.style.height = `${targetHeight}px`;
+    background.style.width = `${targetWidth}px`;
+    background.style.top = `${position.y * -1}px`;
+
+    element.appendChild(result);
+    element.appendChild(background);
+    console.log(element, result, background);
+    document.body.parentNode.appendChild(element);
     // Target the HTML root to include .customBackground
-    const fullCanvas = await domToCanvas(document.documentElement, {
+    const fullCanvas = await domToCanvas(element, {
       backgroundColor: await ThemeColors.get("bg"),
       // Sharp output
       scale: window.devicePixelRatio || 1,
-      style: {
+      /*style: {
         width: `${targetWidth}px`,
         height: `${targetHeight}px`,
         overflow: "hidden", // for scrollbar in small viewports
       },
+      */
       // skipping hidden elements (THAT IS SO IMPORTANT!)
-      filter: (el: Node): boolean => {
+      /*filter: (el: Node): boolean => {
         if (el instanceof HTMLElement) {
           if (el.classList.contains("hidden")) {
             return false;
@@ -157,6 +178,7 @@ async function generateCanvas(): Promise<HTMLCanvasElement | null> {
         }
         return true;
       },
+      */
       // TODD find out why not working and if possible to make it work
       // Help remote image fetching (for custom background URLs)
       /*fetch: {
@@ -182,43 +204,10 @@ async function generateCanvas(): Promise<HTMLCanvasElement | null> {
       },
     });
 
-    // Scale
-    const viewportWidth = targetWidth;
-    const viewportHeight = targetHeight;
-    const scaleX = fullCanvas.width / Math.max(1, viewportWidth);
-    const scaleY = fullCanvas.height / Math.max(1, viewportHeight);
-
-    const canvas = document.createElement("canvas");
-    canvas.width = sourceWidth + paddingX * 2;
-    canvas.height = sourceHeight + paddingY * 2;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) {
-      Notifications.add("Failed to get canvas context for screenshot", -1);
-      revert();
-      return null;
-    }
-
-    // Enable smoothing
-    ctx.imageSmoothingEnabled = true;
-
-    const srcCropX = Math.max(0, (sourceX - paddingX) * scaleX);
-    const srcCropY = Math.max(0, (sourceY - paddingY) * scaleY);
-    const srcCropW = Math.max(1, (sourceWidth + paddingX * 2) * scaleX);
-    const srcCropH = Math.max(1, (sourceHeight + paddingY * 2) * scaleY);
-
-    ctx.drawImage(
-      fullCanvas,
-      srcCropX,
-      srcCropY,
-      srcCropW,
-      srcCropH,
-      0,
-      0,
-      sourceWidth + paddingX * 2,
-      sourceHeight + paddingY * 2
-    );
-    revert();
-    return canvas;
+    // originalParent?.insertBefore(result, originalSibling);
+    // element.remove();
+    //revert();
+    return fullCanvas;
   } catch (e) {
     Notifications.add(
       Misc.createErrorMessage(e, "Error creating screenshot canvas"),

@@ -120,65 +120,27 @@ async function generateCanvas(): Promise<HTMLCanvasElement | null> {
   }
   await new Promise((resolve) => setTimeout(resolve, 50)); // Small delay for render updates
 
-  const sourceX = src.offset()?.left ?? 0;
-  const sourceY = src.offset()?.top ?? 0;
-  const sourceWidth = src.outerWidth(true) as number;
-  const sourceHeight = src.outerHeight(true) as number;
-  const paddingX = convertRemToPixels(2);
-  const paddingY = convertRemToPixels(2);
-
   try {
-    // Compute full-document render size to keep the target area in frame on small viewports
-    const targetWidth = Math.max(
-      document.documentElement.scrollWidth,
-      document.documentElement.clientWidth
-    );
-    const targetHeight = Math.max(
-      document.documentElement.scrollHeight,
-      document.documentElement.clientHeight
-    );
+    const element = document.querySelector("#ssWrapper") as HTMLElement;
+    //element.style.padding = "25px";
+    const background = document.querySelector(
+      ".customBackground"
+    ) as HTMLImageElement as HTMLElement;
+    const backgroundClone = background.cloneNode(true) as HTMLElement;
 
-    const element = document.createElement("div");
-    element.style.height = `${targetHeight} px`;
-    element.style.width = `${targetWidth} px`;
-    const background = (
-      document.querySelector(".customBackground") as HTMLImageElement
-    ).cloneNode(true) as HTMLElement;
-    const body = document.body;
-    const result = document.querySelector("#result") as HTMLElement;
-    const originalParent = result.parentElement;
-    const originalSibling = result.nextSibling;
+    const result = element.querySelector("#result") as HTMLElement;
     const position = result.getBoundingClientRect();
+    backgroundClone.style.top = `${position.y * -1}px`;
 
-    background.style.height = `${targetHeight}px`;
-    background.style.width = `${targetWidth}px`;
-    background.style.top = `${position.y * -1}px`;
+    element.insertBefore(backgroundClone, result);
 
-    element.appendChild(result);
-    element.appendChild(background);
-    console.log(element, result, background);
-    document.body.parentNode.appendChild(element);
+    background.style.opacity = "0";
+
     // Target the HTML root to include .customBackground
     const fullCanvas = await domToCanvas(element, {
       backgroundColor: await ThemeColors.get("bg"),
       // Sharp output
       scale: window.devicePixelRatio || 1,
-      /*style: {
-        width: `${targetWidth}px`,
-        height: `${targetHeight}px`,
-        overflow: "hidden", // for scrollbar in small viewports
-      },
-      */
-      // skipping hidden elements (THAT IS SO IMPORTANT!)
-      /*filter: (el: Node): boolean => {
-        if (el instanceof HTMLElement) {
-          if (el.classList.contains("hidden")) {
-            return false;
-          }
-        }
-        return true;
-      },
-      */
       // TODD find out why not working and if possible to make it work
       // Help remote image fetching (for custom background URLs)
       /*fetch: {
@@ -191,22 +153,14 @@ async function generateCanvas(): Promise<HTMLCanvasElement | null> {
           const el = cloned as HTMLElement;
           if (el.classList?.contains("customBackground")) {
             el.style.zIndex = "0";
-            el.style.width = `${targetWidth}px`;
-            el.style.height = `${targetHeight}px`;
-            // for the inner image scales
-            const img = el.querySelector("img");
-            if (img) {
-              img.style.width = "103%"; //103 cuz somehow the scrollbar shows in smaller sizes with blur
-              img.style.height = "100%";
-            }
           }
         }
       },
     });
 
-    // originalParent?.insertBefore(result, originalSibling);
-    // element.remove();
-    //revert();
+    //backgroundClone.remove();
+    //background.style.opacity = "1";
+    revert();
     return fullCanvas;
   } catch (e) {
     Notifications.add(

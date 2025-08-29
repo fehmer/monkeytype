@@ -1,5 +1,3 @@
-import request from "supertest";
-import app from "../../../src/app";
 import * as Configuration from "../../../src/init/configuration";
 import { generateCurrentTestActivity } from "../../../src/api/controllers/user";
 import * as UserDal from "../../../src/dal/user";
@@ -31,16 +29,14 @@ import MonkeyError, { isFirebaseError } from "../../../src/utils/error";
 import { LeaderboardEntry } from "@monkeytype/schemas/leaderboards";
 import * as WeeklyXpLeaderboard from "../../../src/services/weekly-xp-leaderboard";
 import { pb } from "../../__testData__/users";
+import { setup } from "../../__testData__/controllerTest";
 
-const mockApp = request(app.server);
+const mockApp = setup();
 const configuration = Configuration.getCachedConfiguration();
 const uid = new ObjectId().toHexString();
 const mockAuth = mockBearerAuthentication(uid);
 
 describe("user controller test", () => {
-  beforeAll(async () => {
-    await app.ready();
-  });
   beforeEach(() => {
     mockAuth.beforeEach();
   });

@@ -32,12 +32,15 @@ import { LeaderboardEntry } from "@monkeytype/schemas/leaderboards";
 import * as WeeklyXpLeaderboard from "../../../src/services/weekly-xp-leaderboard";
 import { pb } from "../../__testData__/users";
 
-const mockApp = request(app);
+const mockApp = request(app.server);
 const configuration = Configuration.getCachedConfiguration();
 const uid = new ObjectId().toHexString();
 const mockAuth = mockBearerAuthentication(uid);
 
 describe("user controller test", () => {
+  beforeAll(async () => {
+    await app.ready();
+  });
   beforeEach(() => {
     mockAuth.beforeEach();
   });
@@ -475,6 +478,7 @@ describe("user controller test", () => {
       //WHEN
       const { body } = await mockApp
         .post("/users/forgotPasswordEmail")
+
         .expect(422);
 
       //THEN

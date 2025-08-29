@@ -4,7 +4,10 @@ import { isDevEnvironment } from "../utils/misc";
 import MonkeyError from "../utils/error";
 import { EndpointMetadata } from "@monkeytype/contracts/util/api";
 import { FastifyRequest } from "fastify";
-import { onRequestMetaHookHandler } from "fastify/types/hooks";
+import {
+  onRequestMetaHookHandler,
+  preValidationAsyncHookHandler,
+} from "fastify/types/hooks";
 
 /**
  * record the client version from the `x-client-version`  or ` client-version` header to prometheus
@@ -38,4 +41,18 @@ export function getMetadata(req: FastifyRequest): EndpointMetadata {
 
 export function isTsRestRequest(req: FastifyRequest): boolean {
   return req.routeOptions?.config?.["tsRestRoute"] !== undefined;
+}
+
+export function emptyBodyMiddleware(): preValidationAsyncHookHandler {
+  return async (req) => {
+    if (
+      (req.method === "POST" ||
+        req.method === "PATCH" ||
+        req.method === "DELETE") &&
+      req.body === undefined &&
+      isTsRestRequest(req)
+    ) {
+      req.body = {};
+    }
+  };
 }

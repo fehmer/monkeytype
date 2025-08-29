@@ -28,16 +28,23 @@ export function callController<
       ctx: all.request["ctx"] as Context,
     };
 
-    const result = await handler(req);
-    const response = {
-      status: 200 as TStatus,
-      body: {
-        message: result.message,
-        data: result.data,
-      },
-    };
+    try {
+      const result = await handler(req);
+      const response = {
+        status: 200 as TStatus,
+        body: {
+          message: result.message,
+          data: result.data,
+        },
+      };
 
-    return response;
+      return response;
+    } catch (err) {
+      return {
+        status: 500,
+        body: {},
+      };
+    }
   };
 }
 

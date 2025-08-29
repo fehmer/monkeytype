@@ -52,7 +52,7 @@ const router = s.router(contract, {
   webhooks,
 });
 
-async function addApiRoutes(app: FastifyInstance): Promise<void> {
+export async function addApiRoutes(app: FastifyInstance): Promise<void> {
   app.register(maintenanceMiddleware);
 
   applyDevApiRoutes(app);
@@ -149,7 +149,6 @@ function applyDevApiRoutes(app: FastifyInstance): void {
     });
 
     //configuration page
-    console.log(join(__dirname, "../../../private"));
     app.register(fastifyStatic, {
       root: join(__dirname, "../../../private"),
       prefix: "/configure",

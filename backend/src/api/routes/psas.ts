@@ -7,7 +7,7 @@ import { recordClientVersion } from "../../middlewares/utility";
 const s = initServer();
 export default s.router(psasContract, {
   get: {
-    //middleware: [recordClientVersion()],
+    hooks: { onRequest: recordClientVersion() },
     handler: async (r) => callController(PsaController.getPsas)(r),
   },
 });

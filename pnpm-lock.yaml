@@ -50,6 +50,9 @@ importers:
       '@date-fns/utc':
         specifier: 1.2.0
         version: 1.2.0
+      '@fastify/cors':
+        specifier: 11.1.0
+        version: 11.1.0
       '@fastify/etag':
         specifier: git+ssh://github.com/fehmer/fastify-etag.git#feature/etag-prefix
         version: https://codeload.github.com/fehmer/fastify-etag/tar.gz/ed301ec992d8aaec66c70887f19d5cb42e445339
@@ -89,9 +92,6 @@ importers:
       chalk:
         specifier: 4.1.2
         version: 4.1.2
-      cors:
-        specifier: 2.8.5
-        version: 2.8.5
       cron:
         specifier: 2.3.0
         version: 2.3.0
@@ -1766,6 +1766,9 @@ packages:
   '@fastify/busboy@2.1.1':
     resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
     engines: {node: '>=14'}
+
+  '@fastify/cors@11.1.0':
+    resolution: {integrity: sha512-sUw8ed8wP2SouWZTIbA7V2OQtMNpLj2W6qJOYhNdcmINTu6gsxVYXjQiM9mdi8UUDlcoDDJ/W2syPo1WB2QjYA==}
 
   '@fastify/error@2.0.0':
     resolution: {integrity: sha512-wI3fpfDT0t7p8E6dA2eTECzzOd+bZsZCJ2Hcv+Onn2b7ZwK3RwD27uW2QDaMtQhAfWQQP+WNK7nKf0twLsBf9w==}
@@ -11605,6 +11608,11 @@ snapshots:
       text-decoding: 1.0.0
 
   '@fastify/busboy@2.1.1': {}
+
+  '@fastify/cors@11.1.0':
+    dependencies:
+      fastify-plugin: 5.0.1
+      toad-cache: 3.7.0
 
   '@fastify/error@2.0.0': {}
 

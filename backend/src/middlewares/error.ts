@@ -3,7 +3,7 @@ import * as db from "../init/db";
 import { v4 as uuidv4 } from "uuid";
 import Logger from "../utils/logger";
 import MonkeyError, { getErrorMessage } from "../utils/error";
-import { incrementBadAuth } from "./rate-limit";
+//import { incrementBadAuth } from "./rate-limit";
 
 import {
   recordClientErrorByVersion,
@@ -12,8 +12,8 @@ import {
 import { isDevEnvironment } from "../utils/misc";
 import { version } from "../version";
 import { addLog } from "../dal/logs";
-import { FastifyRequestWithContext } from "../api/types";
 import { FastifyInstance, FastifyReply } from "fastify";
+import { Context } from "./context";
 
 type DBError = {
   _id: string; //we are using uuid here, not objectIds
@@ -33,14 +33,17 @@ type ErrorData = {
 };
 
 async function errorHandlingMiddleware(app: FastifyInstance): Promise<void> {
-  app.setErrorHandler(async (error, req: FastifyRequestWithContext, res) => {
+  app.setErrorHandler(async (error, req, res) => {
     try {
-      const monkeyError = error as MonkeyError;
+      let errorId: string | undefined =
+        "errorId" in error ? (error.errorId as string) : uuidv4();
+      let uid: string = "uid" in error ? (error.uid as string) : "";
+
+      if (uid === "" && "ctx" in req) {
+        uid = (req.ctx as Context).decodedToken?.uid;
+      }
+
       let status = 500;
-      const data: { errorId?: string; uid: string } = {
-        errorId: monkeyError.errorId ?? uuidv4(),
-        uid: monkeyError.uid ?? req.ctx?.decodedToken?.uid,
-      };
       let message = "Unknown error";
 
       if (/ECONNREFUSED.*27017/i.test(error.message)) {
@@ -52,22 +55,19 @@ async function errorHandlingMiddleware(app: FastifyInstance): Promise<void> {
         message = error.message;
         status = error.status;
       } else {
-        message = `Oops! Our monkeys dropped their bananas. Please try again later. - ${data.errorId}`;
+        message = `Oops! Our monkeys dropped their bananas. Please try again later. - ${errorId}`;
       }
 
-      await incrementBadAuth(req, res, status);
+      //TODO await incrementBadAuth(req, res, status);
 
       if (status >= 400 && status < 500) {
-        recordClientErrorByVersion(req.headers["x-client-version"] as string);
+        recordClientErrorByVersion(
+          req.raw.headers["x-client-version"] as string
+        );
       }
 
       if (!isDevEnvironment() && status >= 500 && status !== 503) {
         recordServerErrorByVersion(version);
-
-        const { uid, errorId } = data as {
-          uid: string;
-          errorId: string;
-        };
 
         try {
           await addLog(
@@ -79,7 +79,7 @@ async function errorHandlingMiddleware(app: FastifyInstance): Promise<void> {
             _id: errorId,
             timestamp: Date.now(),
             status: status,
-            uid,
+            uid: uid ?? "",
             message: error.message,
             stack: error.stack,
             endpoint: req.originalUrl,
@@ -96,10 +96,10 @@ async function errorHandlingMiddleware(app: FastifyInstance): Promise<void> {
       }
 
       if (status < 500) {
-        delete data.errorId;
+        errorId = undefined;
       }
 
-      handleErrorResponse(res, status, message, data);
+      handleErrorResponse(res, status, message, { errorId, uid });
       return;
     } catch (e) {
       Logger.error("Error handling middleware failed.");

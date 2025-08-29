@@ -9,7 +9,7 @@ const s = initServer();
 
 export default s.router(devContract, {
   generateData: {
-    middleware: [onlyAvailableOnDev()],
+    hooks: { onRequest: onlyAvailableOnDev() },
     handler: async (r) => callController(DevController.createTestData)(r),
   },
 });

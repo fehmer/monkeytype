@@ -80,6 +80,7 @@ export const MonkeyServerError = MonkeyClientError.extend({
   errorId: z.string(),
   uid: z.string().optional(),
 });
+export type MonkeyClientErrorType = z.infer<typeof MonkeyClientError>;
 export type MonkeyServerErrorType = z.infer<typeof MonkeyServerError>;
 
 export function responseWithNullableData<T extends ZodSchema>(

@@ -52,7 +52,7 @@ const router = s.router(contract, {
   webhooks,
 });
 
-export async function addApiRoutes(app: FastifyInstance): Promise<void> {
+export function addApiRoutes(app: FastifyInstance): void {
   app.register(maintenanceMiddleware);
 
   applyDevApiRoutes(app);

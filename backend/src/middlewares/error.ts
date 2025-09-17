@@ -12,8 +12,11 @@ import {
 import { isDevEnvironment } from "../utils/misc";
 import { version } from "../version";
 import { addLog } from "../dal/logs";
-import { FastifyInstance, FastifyReply } from "fastify";
-import { Context } from "./context";
+import {
+  MonkeyClientErrorType,
+  MonkeyServerErrorType,
+} from "@monkeytype/contracts/util/api";
+import { TsRestRequestWithContext } from "../api/types";
 
 type DBError = {
   _id: string; //we are using uuid here, not objectIds
@@ -32,103 +35,76 @@ type ErrorData = {
   uid: string;
 };
 
-async function errorHandlingMiddleware(app: FastifyInstance): Promise<void> {
-  app.setErrorHandler(async (error, req, res) => {
+export async function translateError(
+  // oxlint-disable-next-line no-explicit-any
+  error: Error,
+  req: TsRestRequestWithContext
+): Promise<{
+  status: number;
+  body: MonkeyClientErrorType | MonkeyServerErrorType;
+}> {
+  let errorId: string | undefined;
+  let uid: string | undefined;
+  let status = 500;
+  let message = "Unknown error";
+
+  if (error instanceof MonkeyError) {
+    errorId = error.errorId;
+    uid = error.uid;
+    status = error.status;
+    message = error.message;
+  } else {
+    errorId = uuidv4();
+    uid = req.ctx?.decodedToken?.uid;
+  }
+
+  if (/ECONNREFUSED.*27017/i.test(error.message)) {
+    message = "Could not connect to the database. It may be down.";
+  } else if (error instanceof URIError || error instanceof SyntaxError) {
+    status = 400;
+    message = "Unprocessable request";
+  } else {
+    message = `Oops! Our monkeys dropped their bananas. Please try again later. - ${errorId}`;
+  }
+
+  //TODO  await incrementBadAuth
+
+  if (status >= 400 && status < 500) {
+    recordClientErrorByVersion(req.headers["x-client-version"] as string);
+  }
+
+  if (!isDevEnvironment() && status >= 500 && status !== 503) {
+    recordServerErrorByVersion(version);
+
     try {
-      let errorId: string | undefined =
-        "errorId" in error ? (error.errorId as string) : uuidv4();
-      let uid: string = "uid" in error ? (error.uid as string) : "";
-
-      if (uid === "" && "ctx" in req) {
-        uid = (req.ctx as Context).decodedToken?.uid;
-      }
-
-      let status = 500;
-      let message = "Unknown error";
-
-      if (/ECONNREFUSED.*27017/i.test(error.message)) {
-        message = "Could not connect to the database. It may be down.";
-      } else if (error instanceof URIError || error instanceof SyntaxError) {
-        status = 400;
-        message = "Unprocessable request";
-      } else if (error instanceof MonkeyError) {
-        message = error.message;
-        status = error.status;
-      } else {
-        message = `Oops! Our monkeys dropped their bananas. Please try again later. - ${errorId}`;
-      }
-
-      //TODO await incrementBadAuth(req, res, status);
-
-      if (status >= 400 && status < 500) {
-        recordClientErrorByVersion(
-          req.raw.headers["x-client-version"] as string
-        );
-      }
-
-      if (!isDevEnvironment() && status >= 500 && status !== 503) {
-        recordServerErrorByVersion(version);
-
-        try {
-          await addLog(
-            "system_error",
-            `${status} ${errorId} ${error.message} ${error.stack}`,
-            uid
-          );
-          await db.collection<DBError>("errors").insertOne({
-            _id: errorId,
-            timestamp: Date.now(),
-            status: status,
-            uid: uid ?? "",
-            message: error.message,
-            stack: error.stack,
-            endpoint: req.originalUrl,
-            method: req.method,
-            url: req.url,
-          });
-        } catch (e) {
-          Logger.error("Logging to db failed.");
-          Logger.error(getErrorMessage(e) ?? "Unknown error");
-          console.error(e);
-        }
-      } else {
-        Logger.error(`Error: ${error.message} Stack: ${error.stack}`);
-      }
-
-      if (status < 500) {
-        errorId = undefined;
-      }
-
-      handleErrorResponse(res, status, message, { errorId, uid });
-      return;
+      await addLog(
+        "system_error",
+        `${status} ${errorId} ${error.message} ${error.stack}`,
+        uid
+      );
+      await db.collection<DBError>("errors").insertOne({
+        _id: errorId,
+        timestamp: Date.now(),
+        status: status,
+        uid: uid ?? "",
+        message: error.message,
+        stack: error.stack,
+        endpoint: req.originalUrl,
+        method: req.method,
+        url: req.url,
+      });
     } catch (e) {
-      Logger.error("Error handling middleware failed.");
+      Logger.error("Logging to db failed.");
       Logger.error(getErrorMessage(e) ?? "Unknown error");
       console.error(e);
     }
+  } else {
+    Logger.error(`Error: ${error.message} Stack: ${error.stack}`);
+  }
 
-    handleErrorResponse(
-      res,
-      500,
-      "Something went really wrong, please contact support."
-    );
-  });
+  if (status < 500) {
+    errorId = undefined;
+  }
+
+  return { status, body: { message, errorId, uid } };
 }
-
-function handleErrorResponse(
-  res: FastifyReply,
-  status: number,
-  message: string,
-  data?: ErrorData
-): void {
-  //TODO nobody should read this
-  //if (isCustomCode(status)) {
-  //    res.statusMessage = message;
-  //  }
-
-  //TODO still needed? //@ts-expect-error ignored so that we can see message in swagger stats
-
-  res.code(status).send({ message, data: data ?? null });
-}
-
-export default fp(errorHandlingMiddleware);

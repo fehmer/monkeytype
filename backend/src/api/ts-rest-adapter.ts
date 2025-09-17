@@ -2,7 +2,10 @@ import { AppRoute, AppRouter } from "@ts-rest/core";
 import * as fastify from "fastify";
 import { MonkeyResponse } from "../utils/monkey-response";
 import { Context } from "../middlewares/context";
-import { MonkeyRequest } from "./types";
+import { MonkeyRequest, TsRestRequestWithContext } from "./types";
+import { translateError } from "../middlewares/error";
+import Logger from "../utils/logger";
+import { getErrorMessage } from "../utils/error";
 
 export function callController<
   TRoute extends AppRoute,
@@ -40,10 +43,18 @@ export function callController<
 
       return response;
     } catch (err) {
-      return {
-        status: 500,
-        body: {},
-      };
+      try{
+      return translateError(err, all.req as TsRestRequestWithContext);
+      }catch(e){
+  Logger.error("Error handling middleware failed.");
+    Logger.error(getErrorMessage(e) ?? "Unknown error");
+    console.error(e);
+    return {
+      status: 500,
+      body: {
+        message:     "Something went really wrong, please contact support."
+        
+      }
     }
   };
 }
@@ -101,14 +112,14 @@ type AppRouteImplementation<T extends AppRoute> = {
     fastify.RawRequestDefaultExpression,
     fastify.FastifySchema,
     fastify.FastifyTypeProviderDefault,
-    fastify.FastifyContextConfig<T>
+    fastify.FastifyContextConfig
   >;
   reply: fastify.FastifyReply<
     fastify.RawServerDefault,
     fastify.RawRequestDefaultExpression,
     fastify.RawReplyDefaultExpression,
     fastify.RouteGenericInterface,
-    fastify.FastifyContextConfig<T>
+    fastify.FastifyContextConfig
   >;
   appRoute: T;
 };

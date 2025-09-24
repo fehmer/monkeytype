@@ -1,4 +1,6 @@
 import { vi } from "vitest";
+import "@testing-library/jest-dom/vitest";
+
 import $ from "jquery";
 //@ts-expect-error add to globl
 global["$"] = $;

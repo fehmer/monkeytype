@@ -1,13 +1,13 @@
 import Config from "../config";
 import * as Misc from "../utils/misc";
 
-const el = document.querySelector("#capsWarning") as HTMLElement;
-
 export let capsState = false;
 
 let visible = false;
 
 function show(): void {
+  const el = document.getElementById("capsWarning");
+
   if (!visible) {
     el?.classList.remove("hidden");
     visible = true;
@@ -15,6 +15,7 @@ function show(): void {
 }
 
 function hide(): void {
+  const el = document.getElementById("capsWarning");
   if (visible) {
     el?.classList.add("hidden");
     visible = false;
